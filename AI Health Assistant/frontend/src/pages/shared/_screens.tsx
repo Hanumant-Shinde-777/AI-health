@@ -51,7 +51,7 @@ import {
 } from '@/services/consultationsService'
 import { bookFollowUp } from '@/services/followUpsService'
 import { getDoctorProfile, getDoctors, updateDoctorProfile } from '@/services/doctorsService'
-import { getProfile, updateMedicalHistory, updateProfile } from '@/services/patientsService'
+import { getProfile, loadPatientSessionData, updateMedicalHistory, updateProfile } from '@/services/patientsService'
 import { analyzeSymptoms, fetchNextQuestion, runFinalAnalysis } from '@/services/aiService'
 import {
   approvePrescription,
@@ -440,11 +440,7 @@ export const OtpPage = () => {
         navigate('/doctor-dashboard', { replace: true })
         return
       }
-      // Fetch patient profile from backend after login so profile page shows real data
-      try {
-        const fetchedProfile = await getProfile()
-        dispatch(setProfile(fetchedProfile))
-      } catch {}
+      await loadPatientSessionData(dispatch)
       navigate('/home', { replace: true })
     } catch {
       setOtpError(t('otp.wrong'))
@@ -1152,7 +1148,9 @@ export const AiQuestionsPage = () => {
   const [temperature, setTemperature] = useState<TemperatureBand | null>(() => saved.temperature)
   const sectionBRef = useRef<HTMLDivElement | null>(null)
 
-  // Dynamic question state (one-at-a-time, no fixed limit)
+  // Dynamic question state (one-at-a-time, 7–15 questions)
+  const MIN_QUESTIONS = 7
+  const MAX_QUESTIONS = 15
   const [currentIdx, setCurrentIdx] = useState<number>(0)
   const [dynAnswer, setDynAnswer] = useState<string>(() => savedDynamic[0] ?? '')
   const [doneAsking, setDoneAsking] = useState<boolean>(false)
@@ -1225,6 +1223,12 @@ export const AiQuestionsPage = () => {
       }
       nextAnswers[currentIdx] = answer
       const history = buildHistory(nextAnswers)
+
+      if (history.length >= MAX_QUESTIONS) {
+        setDoneAsking(true)
+        await runFinalAnalysisAndProceed(history)
+        return
+      }
 
       const next = await fetchNextQuestion(symptoms, history, additionalNotes)
       if (next.done) {
@@ -1320,10 +1324,18 @@ export const AiQuestionsPage = () => {
 
   if (hasDynamic) {
     const q = aiQuestions[currentIdx]
+    const questionNum = currentIdx + 1
     return (
       <Layout>
         <div className="page-padding space-y-6 bg-background">
           <Header title={t('aiQuestions.title')} onBack={() => navigate('/symptoms')} />
+          <p className="text-center text-xs text-muted">
+            {t('aiQuestions.progress', {
+              current: questionNum,
+              min: MIN_QUESTIONS,
+              max: MAX_QUESTIONS,
+            }) || `Question ${questionNum} (${MIN_QUESTIONS}–${MAX_QUESTIONS} total)`}
+          </p>
           <div className="space-y-6">
             <section ref={dynSectionRef} className="card space-y-4 p-5">
               <h2 className="text-base font-semibold text-foreground">{q?.question}</h2>
@@ -2388,9 +2400,10 @@ export const EditPrescriptionPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { id = '' } = useParams()
-  const { showToast } = useToast()
+  const { showSequentialToasts } = useToast()
   const [loading, setLoading] = useState(true)
   const [consultationId, setConsultationId] = useState('')
+  const [patientName, setPatientName] = useState('Patient')
   const [editingRows, setEditingRows] = useState<Record<number, boolean>>({})
   const form = useForm<PrescriptionFormValues>({
     defaultValues: {
@@ -2412,6 +2425,7 @@ export const EditPrescriptionPage = () => {
       try {
         const prescription = await getPrescription(id)
         setConsultationId(prescription.consultationId)
+        setPatientName(prescription.patientName ?? 'Patient')
         form.reset({
           diagnosis: prescription.diagnosis,
           medicines: prescription.medicines,
@@ -2459,7 +2473,10 @@ export const EditPrescriptionPage = () => {
                 dateTime: values.dateTime,
               })
               await approvePrescription(id)
-              showToast(t('toast.prescriptionApproved'))
+              showSequentialToasts([
+                t('toast.reviewSubmitted', { name: patientName }),
+                t('toast.patientNotified', { name: patientName }),
+              ])
               navigate('/prescription-approved')
             } finally {
               setLoading(false)

@@ -50,45 +50,75 @@ Based on all information, return ONLY this JSON:
 }
 `
 
-const NEXT_QUESTION_SYSTEM_PROMPT = `You are a clinical triage assistant.
-You must ask follow-up questions ONE AT A TIME.
+const MIN_DIAGNOSTIC_QUESTIONS = 7
+const MAX_DIAGNOSTIC_QUESTIONS = 15
 
-Hard rules:
-- Never use hardcoded, pre-written, generic, or template questions.
-- Each question must be freshly generated only from: the symptom input + all prior questions + all prior answers in this session.
-- After each answer, you must decide the next best question dynamically.
-- Never repeat a question already asked in this session (even rephrased).
-- Continue until you have enough clinical clarity; there is no fixed question limit.
+const NEXT_QUESTION_SYSTEM_PROMPT = `You are a clinical symptom analysis engine powered by Groq.
+Dynamically generate between 7 and 15 diagnostic questions one at a time, then indicate done when complete.
 
-Output ONLY valid JSON. No extra text.`
+QUESTION RULES:
+1. Minimum 7, maximum 15 questions — never less, never more
+2. Every question dynamically generated from symptoms and all previous answers — no hardcoded or template questions
+3. Each question must build on previous answers to go deeper
+4. Never repeat a question already asked
+5. Return done: true only after minimum 7 questions AND enough clinical clarity is reached
+6. Return done: false with next question if under 15 and more clarity needed
 
-const NEXT_QUESTION_PROMPT = (symptoms, history, additionalNotes) => `
+ACCURACY RULES:
+1. Options must be specific to the question — never generic Yes/No unless clinically appropriate
+2. Never ask about symptoms not related to the input
+3. Injury symptoms must never trigger fever or infection questions unless mentioned
+4. Each question must narrow down the diagnosis further than the previous one
+
+Output ONLY valid JSON. No markdown, no extra text.`
+
+const NEXT_QUESTION_PROMPT = (symptoms, history, additionalNotes) => {
+  const answeredCount = history.length
+  const nextQuestionNumber = answeredCount + 1
+  const mustContinue = answeredCount < MIN_DIAGNOSTIC_QUESTIONS
+  const atMaximum = answeredCount >= MAX_DIAGNOSTIC_QUESTIONS
+
+  return `
 Symptoms (raw): ${JSON.stringify(symptoms)}
 Additional notes (may be empty): ${JSON.stringify(additionalNotes || '')}
 
-Session history (ordered):
+Session history (${answeredCount} questions answered so far):
 ${JSON.stringify(history)}
 
-Return ONLY one of these JSON shapes:
+Session status:
+- Questions answered: ${answeredCount}
+- Next question number: ${nextQuestionNumber} (must be between 1 and ${MAX_DIAGNOSTIC_QUESTIONS})
+- Minimum required before done: ${MIN_DIAGNOSTIC_QUESTIONS}
+- Maximum allowed: ${MAX_DIAGNOSTIC_QUESTIONS}
+- ${mustContinue ? `MUST ask at least ${MIN_DIAGNOSTIC_QUESTIONS - answeredCount} more question(s) before done:true is allowed.` : 'Minimum question count reached; done:true is allowed if clinical clarity is sufficient.'}
+- ${atMaximum ? 'Maximum reached — you must return done:true.' : `You may ask up to ${MAX_DIAGNOSTIC_QUESTIONS - answeredCount} more question(s).`}
 
-1) If you have enough clarity to stop asking questions:
-{ "done": true, "rationale": "short reason" }
+Return ONLY one of these JSON shapes (strict JSON, no markdown):
 
-2) Otherwise:
+If under ${MIN_DIAGNOSTIC_QUESTIONS} answered: you MUST return done:false with the next question.
+
+If ${MIN_DIAGNOSTIC_QUESTIONS}–${MAX_DIAGNOSTIC_QUESTIONS - 1} answered and more clarity needed:
 {
   "done": false,
   "question": {
-    "question": "the single next question",
-    "options": ["2-6 concise answer choices that fit THIS case"]
+    "question": "<dynamically generated question text>",
+    "options": ["Option 1", "Option 2", "Option 3", "Option 4"]
   },
-  "rationale": "short reason"
+  "rationale": "<one line: why this question is being asked>"
+}
+
+If at least ${MIN_DIAGNOSTIC_QUESTIONS} answered AND enough clinical clarity (or at ${MAX_DIAGNOSTIC_QUESTIONS} questions):
+{
+  "done": true,
+  "rationale": "<one line: why enough information has been collected>"
 }
 
 Constraints:
-- The question must be specific to the symptoms and the existing answers.
-- Options must not be generic placeholders; they must fit the specific question.
+- Provide exactly 3–6 options per question; each option must be specific to this case.
 - Do not ask for multiple things in one question.
-- Do not output more than one question.`
+- Do not output more than one question.
+- Never repeat a question from session history.`
+}
 
 /**
  * Parses the AI response, extracting JSON from any wrapper text.
@@ -217,29 +247,46 @@ export const nextQuestionWithGroq = async (symptoms, history = [], additionalNot
         .filter((item) => item.question && item.answer)
     : []
 
+  const answeredCount = safeHistory.length
+
+  if (answeredCount >= MAX_DIAGNOSTIC_QUESTIONS) {
+    return {
+      done: true,
+      rationale: `Maximum ${MAX_DIAGNOSTIC_QUESTIONS} diagnostic questions collected.`,
+    }
+  }
+
   const asked = new Set(safeHistory.map((h) => normalizeQuestionKey(h.question)))
-  const maxAttempts = 3
+  const maxAttempts = 4
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const mustForceQuestion = answeredCount < MIN_DIAGNOSTIC_QUESTIONS
+    const retryNote =
+      attempt === 0
+        ? ''
+        : mustForceQuestion
+          ? `\n\nYou returned done:true too early or an invalid/repeated question. You MUST return done:false with question #${answeredCount + 1} (minimum ${MIN_DIAGNOSTIC_QUESTIONS} required).`
+          : '\n\nYour previous output repeated an earlier question or was invalid. Generate a DIFFERENT question that has not been asked.'
+
     const completion = await createCompletionWithFallback({
       messages: [
         { role: 'system', content: NEXT_QUESTION_SYSTEM_PROMPT },
         {
           role: 'user',
-          content:
-            attempt === 0
-              ? NEXT_QUESTION_PROMPT(symptoms, safeHistory, additionalNotes)
-              : `${NEXT_QUESTION_PROMPT(symptoms, safeHistory, additionalNotes)}\n\nYour previous output repeated an earlier question or was invalid. Generate a DIFFERENT question that has not been asked.`,
+          content: NEXT_QUESTION_PROMPT(symptoms, safeHistory, additionalNotes) + retryNote,
         },
       ],
-      temperature: 0.45 + attempt * 0.1,
-      max_tokens: 450,
+      temperature: 0.45 + attempt * 0.08,
+      max_tokens: 500,
     })
 
     const content = completion.choices[0]?.message?.content ?? ''
     const parsed = parseJson(content)
 
     if (parsed?.done === true) {
+      if (answeredCount < MIN_DIAGNOSTIC_QUESTIONS) {
+        continue
+      }
       return { done: true, rationale: String(parsed.rationale ?? '').slice(0, 240) }
     }
 
@@ -261,3 +308,5 @@ export const nextQuestionWithGroq = async (symptoms, history = [], additionalNot
 
   throw new Error('Unable to generate a valid next question after multiple attempts')
 }
+
+export { MIN_DIAGNOSTIC_QUESTIONS, MAX_DIAGNOSTIC_QUESTIONS }

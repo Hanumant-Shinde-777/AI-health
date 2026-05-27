@@ -39,7 +39,7 @@ router.post('/final-analysis', asyncHandler(async (req, res) => {
 
 /**
  * POST /api/ai/next-question
- * Dynamically generates the next follow-up question (one at a time).
+ * Dynamically generates the next follow-up question (one at a time, 7–15 total).
  * Body:
  *  {
  *    symptoms: string,
@@ -54,7 +54,17 @@ router.post('/next-question', asyncHandler(async (req, res) => {
   }
   const safeHistory = Array.isArray(history) ? history : []
   const result = await nextFollowUpQuestion(symptoms.trim(), safeHistory, additionalNotes ?? '')
-  res.json({ success: true, data: result })
+  const answeredCount = safeHistory.length
+  res.json({
+    success: true,
+    data: {
+      ...result,
+      questionNumber: result.done ? answeredCount : answeredCount + 1,
+      minQuestions: 7,
+      maxQuestions: 15,
+      answeredCount,
+    },
+  })
 }))
 
 export default router

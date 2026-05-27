@@ -141,6 +141,10 @@ export const getProfileLegacy = async (req, res) => {
     heightCm: patient.height ?? 0,
     weightKg: patient.weight ?? 0,
     bloodGroup: patient.bloodGroup ?? undefined,
+    email: patient.email ?? '',
+    dateOfBirth: patient.dateOfBirth ? patient.dateOfBirth.toISOString().slice(0, 10) : '',
+    address: patient.address ?? '',
+    emergencyContact: patient.emergencyContact ?? '',
   })
 }
 
@@ -152,6 +156,12 @@ export const updateProfileLegacy = async (req, res) => {
   if (req.body.heightCm != null) data.height = Number(req.body.heightCm)
   if (req.body.weightKg != null) data.weight = Number(req.body.weightKg)
   if (req.body.bloodGroup != null) data.bloodGroup = req.body.bloodGroup
+  if (req.body.email != null) data.email = req.body.email.trim().toLowerCase() || null
+  if (req.body.dateOfBirth != null) {
+    data.dateOfBirth = req.body.dateOfBirth ? new Date(req.body.dateOfBirth) : null
+  }
+  if (req.body.address != null) data.address = req.body.address
+  if (req.body.emergencyContact != null) data.emergencyContact = req.body.emergencyContact
   const patient = await prisma.patient.update({ where: { id: req.user.id }, data })
   res.json({
     id: patient.id,
@@ -161,5 +171,9 @@ export const updateProfileLegacy = async (req, res) => {
     heightCm: patient.height ?? 0,
     weightKg: patient.weight ?? 0,
     bloodGroup: patient.bloodGroup ?? undefined,
+    email: patient.email ?? '',
+    dateOfBirth: patient.dateOfBirth ? patient.dateOfBirth.toISOString().slice(0, 10) : '',
+    address: patient.address ?? '',
+    emergencyContact: patient.emergencyContact ?? '',
   })
 }

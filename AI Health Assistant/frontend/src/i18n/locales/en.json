@@ -351,6 +351,7 @@
   },
   "aiQuestions": {
     "title": "AI Asking Questions",
+    "progress": "Question {{current}} of {{min}}–{{max}}",
     "mock": {
       "fever": {
         "question": "Do you have fever?",
@@ -680,6 +681,8 @@
   "toast": {
     "savedDraft": "Draft saved successfully",
     "prescriptionApproved": "Prescription approved",
+    "reviewSubmitted": "Review Submitted — Your review for {{name}} has been successfully submitted.",
+    "patientNotified": "Patient Notified — {{name}} has been notified of your review and recommendations.",
     "profileUpdated": "Profile updated",
     "doctorProfileUpdated": "Profile updated successfully ✅",
     "historyUpdated": "Medical history updated"

@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { usePatientSession } from '@/hooks/usePatientSession'
 import type { UserRole } from '@/types'
 import { isDoctorOnlyPath } from '@/utils/userScope'
 
@@ -14,6 +15,7 @@ interface ProtectedRouteProps extends PropsWithChildren {
 const ProtectedRoute = ({ children, role, patientOnly }: ProtectedRouteProps) => {
   const { isAuthenticated, user } = useAuth()
   const location = useLocation()
+  usePatientSession(Boolean(patientOnly && isAuthenticated && user?.role === 'PATIENT'))
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace state={{ from: location.pathname }} />

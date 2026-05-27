@@ -53,6 +53,9 @@ export interface NextQuestionResult {
   done: boolean
   question?: AiQuestion
   rationale?: string
+  questionNumber?: number
+  minQuestions?: number
+  maxQuestions?: number
 }
 
 export const fetchNextQuestion = async (

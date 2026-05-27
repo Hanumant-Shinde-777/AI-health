@@ -182,6 +182,7 @@ export const updateConsultationCaseStatus = async (
       caseStatus,
       ...extra,
     })
+    useDoctorDashboardStore.getState().upsertCase(response.data)
     return response.data
   } catch {
     await delay()

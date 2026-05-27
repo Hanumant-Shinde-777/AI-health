@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { loginComplete, loginInitiate, loginResendOtp, type LoginUserRole } from '@/services/authService'
+import { loadPatientSessionData } from '@/services/patientsService'
 import { formatIndianPhone } from '@/utils/phone'
 import { LoginValidationError } from '@/services/loginValidation'
 import LoadingSpinner from '@/components/feedback/LoadingSpinner'
@@ -13,7 +14,8 @@ import FormField from '@/components/forms/FormField'
 import { useToast } from '@/components/feedback/Toast'
 import { useAppDispatch } from '@/store'
 import { setCredentials } from '@/store/slices/authSlice'
-import { classNames, isPatientPendingRegistration, persistLastMobile, readRegisterDraft } from '@/utils'
+import { clearPatientData } from '@/store/slices/patientSlice'
+import { classNames, clearPatientSessionCache, isPatientPendingRegistration, persistLastMobile, readRegisterDraft } from '@/utils'
 import {
   OTP_RESEND_SECONDS,
   OtpEntryFields,
@@ -190,7 +192,14 @@ export const CredentialLoginForm = ({
         setLoginError(t('login.unableToProcess'))
         return
       }
+      if (userRole === 'patient') {
+        clearPatientSessionCache()
+        dispatch(clearPatientData())
+      }
       dispatch(setCredentials({ user: response.user, token: response.token }))
+      if (userRole === 'patient') {
+        await loadPatientSessionData(dispatch)
+      }
       navigate(homePath, { replace: true })
     } catch (error) {
       setOtpError(mapLoginValidationError(error))

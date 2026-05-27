@@ -21,6 +21,7 @@ import FormField from '@/components/forms/FormField'
 import MedicalHistoryForm from '@/components/forms/MedicalHistoryForm'
 import { useToast } from '@/components/feedback/Toast'
 import Layout from '@/layouts/MainLayout'
+import { useAuth } from '@/hooks/useAuth'
 import { useAppDispatch, useAppSelector } from '@/store'
 import { useDoctorDashboardStore } from '@/store/slices/doctorDashboardStore'
 import { logout, setCredentials, setRole } from '@/store/slices/authSlice'
@@ -45,8 +46,8 @@ import {
   removeStorage,
   readDoctorRegPassword,
   readPatientRegPassword,
-  readPatientExtendedProfile,
   readRegisterDraft,
+  clearPatientSessionCache,
   registerMobile,
   saveDoctorCredentials,
   savePatientCredentials,
@@ -60,10 +61,9 @@ import {
   writeDoctorProfile,
   writeDoctorRegPassword,
   writePatientRegPassword,
-  writePatientExtendedProfile,
   writeRegisterDraft,
 } from '@/utils'
-import type { DoctorProfileRecord, PatientExtendedProfile, RegisterDraft } from '@/utils'
+import type { DoctorProfileRecord, RegisterDraft } from '@/utils'
 import {
   getNotificationsForRole,
   markAllRead,
@@ -313,8 +313,7 @@ export const AuthPage = () => {
     if (tab !== 'register') return
     // Wipe every piece of state that could carry a previous patient's data
     removeStorage(storageKeys.registerDraft)
-    removeStorage(storageKeys.profile)
-    removeStorage(storageKeys.medicalHistory)
+    clearPatientSessionCache()
     clearPatientRegistrationFlow()
     clearPatientRegPassword()
     removeStorage(storageKeys.token)
@@ -697,14 +696,14 @@ export const PatientRegistrationPage = () => {
     const nextProfile = await updateProfile({
       ...(patientId ? { id: patientId } : {}),
       ...profileValues,
+      email: extendedValues.email || draft.email,
+      dateOfBirth: extendedValues.dateOfBirth,
+      address: extendedValues.address,
+      emergencyContact: extendedValues.emergencyContact,
       gender: profileValues.gender as Gender,
       bloodGroup: profileValues.bloodGroup as BloodGroup,
     })
     dispatch(setProfile(nextProfile))
-    writePatientExtendedProfile({
-      ...extendedValues,
-      email: draft.email ?? '',
-    } as PatientExtendedProfile)
     setStep(2)
   }
 
@@ -1119,19 +1118,18 @@ export const PatientMyProfilePage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
+  const { user } = useAuth()
   const profile = useAppSelector((state) => state.patient.profile)
-  const extended = readPatientExtendedProfile()
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const { showToast } = useToast()
 
-  // Fetch fresh profile from backend on mount so fields don't show "Not provided"
-  // after login on a new device or when localStorage was cleared
   useEffect(() => {
+    if (!user?.id) return
     getProfile()
       .then((fetchedProfile) => dispatch(setProfile(fetchedProfile)))
       .catch(() => {})
-  }, [])
+  }, [dispatch, user?.id])
 
   const buildProfileValues = () => ({
     fullName: profile?.fullName ?? '',
@@ -1143,10 +1141,10 @@ export const PatientMyProfilePage = () => {
   })
 
   const buildExtendedValues = () => ({
-    email: extended?.email ?? '',
-    dateOfBirth: extended?.dateOfBirth ?? '',
-    address: extended?.address ?? '',
-    emergencyContact: extended?.emergencyContact ?? '',
+    email: profile?.email ?? '',
+    dateOfBirth: profile?.dateOfBirth ?? '',
+    address: profile?.address ?? '',
+    emergencyContact: profile?.emergencyContact ?? '',
   })
 
   const form = useForm({
@@ -1205,13 +1203,14 @@ export const PatientMyProfilePage = () => {
       const nextProfile = await updateProfile({
         id: profile?.id,
         ...values,
+        email: ext.email,
+        dateOfBirth: ext.dateOfBirth,
+        address: ext.address,
+        emergencyContact: ext.emergencyContact,
         gender: values.gender as Gender,
         bloodGroup: values.bloodGroup as BloodGroup,
       })
       dispatch(setProfile(nextProfile))
-
-      
-      writePatientExtendedProfile(ext as PatientExtendedProfile)
       form.reset(values)
       extendedForm.reset(ext)
       showToast(t('toast.profileUpdated'))
@@ -1464,10 +1463,10 @@ export const PatientMyProfilePage = () => {
             </div>
             <div className="card p-4">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{t('myProfile.contactSection')}</p>
-              <InfoRow label={t('patientReg.email')} value={extended?.email} />
-              <InfoRow label={t('patientReg.dob')} value={extended?.dateOfBirth} />
-              <InfoRow label={t('patientReg.address')} value={extended?.address} />
-              <InfoRow label={t('patientReg.emergency')} value={extended?.emergencyContact} />
+              <InfoRow label={t('patientReg.email')} value={profile?.email} />
+              <InfoRow label={t('patientReg.dob')} value={profile?.dateOfBirth} />
+              <InfoRow label={t('patientReg.address')} value={profile?.address} />
+              <InfoRow label={t('patientReg.emergency')} value={profile?.emergencyContact} />
             </div>
           </>
         )}

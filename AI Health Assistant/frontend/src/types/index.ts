@@ -23,6 +23,10 @@ export interface Patient {
   heightCm: number
   weightKg: number
   bloodGroup?: BloodGroup
+  email?: string
+  dateOfBirth?: string
+  address?: string
+  emergencyContact?: string
 }
 
 export interface MedicalHistory {
@@ -78,6 +82,7 @@ export interface Medicine {
 export interface Prescription {
   id: string
   consultationId: string
+  patientId?: string
   diagnosis: string
   medicines: Medicine[]
   advice?: string

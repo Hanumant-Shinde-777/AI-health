@@ -266,10 +266,17 @@ router.patch('/prescriptions/:id/approve', roleMiddleware('doctor'), asyncHandle
   if (!existing || existing.doctorId !== req.user.id) {
     throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
   }
-  const row = await prisma.prescription.update({
-    where: { id: req.params.id },
-    data: { status: 'approved' },
-    include: { doctor: true, patient: true },
+  const row = await prisma.$transaction(async (tx) => {
+    const prescription = await tx.prescription.update({
+      where: { id: req.params.id },
+      data: { status: 'approved' },
+      include: { doctor: true, patient: true, consultation: true },
+    })
+    await tx.consultation.update({
+      where: { id: prescription.consultationId },
+      data: { status: 'reviewed' },
+    })
+    return prescription
   })
   res.json(mapPrescription(row))
 }))

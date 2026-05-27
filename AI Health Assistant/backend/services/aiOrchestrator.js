@@ -108,10 +108,11 @@ export const analyzeSymptoms = async (symptoms) => {
 /**
  * Step 1b: Generate the next follow-up question (one at a time).
  * Requirements:
+ * - 7–15 diagnostic questions (enforced server-side)
  * - No hardcoded/template questions
  * - Must be generated only from symptoms + prior Q/A
  * - Must not repeat earlier questions
- * - No fixed question limit (caller keeps requesting until done:true)
+ * - done:true only after ≥7 answers and sufficient clinical clarity (or at 15 max)
  *
  * @param {string} symptoms
  * @param {Array<{question: string, answer: string}>} history

@@ -326,6 +326,13 @@ export const setDocProfileComplete = (): void => {
   }
 }
 
+/** Remove all cached patient profile data (call on logout and before loading a new user). */
+export const clearPatientSessionCache = (): void => {
+  removeStorage(storageKeys.profile)
+  removeStorage(storageKeys.medicalHistory)
+  removeStorage(storageKeys.patientExtendedProfile)
+}
+
 export interface PatientExtendedProfile {
   email?: string
   dateOfBirth?: string

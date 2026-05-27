@@ -117,7 +117,25 @@ export const updatePrescription = async (
 export const approvePrescription = async (id: string): Promise<Prescription> => {
   try {
     const response = await client.patch<Prescription>(`/prescriptions/${id}/approve`)
-    return response.data
+    const approved = response.data
+    if (approved.consultationId) {
+      try {
+        await updateConsultationCaseStatus(approved.consultationId, 'PRESCRIPTION_READY', {
+          reviewedAt: new Date().toISOString(),
+        })
+      } catch {
+        // Backend may already mark consultation reviewed during approve.
+      }
+      const patientId = approved.patientId ?? getMockConsultations().find((c) => c.id === approved.consultationId)?.patientId
+      if (patientId) {
+        notifyPatientPrescriptionReady({
+          patientId,
+          doctorName: approved.doctorName ?? 'Doctor',
+          caseId: approved.consultationId,
+        })
+      }
+    }
+    return approved
   } catch {
     await delay()
     const updated = await updatePrescription(id, { status: 'APPROVED' })

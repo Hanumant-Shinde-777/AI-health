@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { MedicalHistory, Patient } from '@/types'
-import { readStorage, storageKeys, writeStorage } from '@/utils'
+import { logout } from '@/store/slices/authSlice'
+import { writeStorage, storageKeys } from '@/utils'
 
 interface PatientState {
   profile: Patient | null
@@ -8,8 +9,8 @@ interface PatientState {
 }
 
 const initialState: PatientState = {
-  profile: readStorage<Patient | null>(storageKeys.profile, null),
-  medicalHistory: readStorage<MedicalHistory | null>(storageKeys.medicalHistory, null),
+  profile: null,
+  medicalHistory: null,
 }
 
 const patientSlice = createSlice({
@@ -24,8 +25,18 @@ const patientSlice = createSlice({
       state.medicalHistory = action.payload
       writeStorage(storageKeys.medicalHistory, action.payload)
     },
+    clearPatientData: (state) => {
+      state.profile = null
+      state.medicalHistory = null
+    },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(logout, (state) => {
+      state.profile = null
+      state.medicalHistory = null
+    })
   },
 })
 
-export const { setProfile, setMedicalHistory } = patientSlice.actions
+export const { setProfile, setMedicalHistory, clearPatientData } = patientSlice.actions
 export default patientSlice.reducer
