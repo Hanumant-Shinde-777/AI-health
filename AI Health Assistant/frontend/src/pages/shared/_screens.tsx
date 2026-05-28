@@ -80,6 +80,7 @@ import {
   resetConsultation,
   setAiAnalysis,
   setDynamicAnswer,
+  setQuestionRange,
   syncDynamicQaToAnswers,
   setAiQuestions,
   setRiskLevel,
@@ -1000,6 +1001,7 @@ export const SymptomsPage = () => {
       }
 
       const first = await fetchNextQuestion(trimmed, [])
+      dispatch(setQuestionRange({ minQuestions: first.minQuestions, maxQuestions: first.maxQuestions }))
       if (first.done === false && first.question) {
         dispatch(
           setAiAnalysis({
@@ -1148,9 +1150,9 @@ export const AiQuestionsPage = () => {
   const [temperature, setTemperature] = useState<TemperatureBand | null>(() => saved.temperature)
   const sectionBRef = useRef<HTMLDivElement | null>(null)
 
-  // Dynamic question state (one-at-a-time, 7–15 questions)
-  const MIN_QUESTIONS = 7
-  const MAX_QUESTIONS = 15
+  // Dynamic question state (dataset-first or Groq flow)
+  const minQuestions = useAppSelector((state) => state.consultation.dynamicMinQuestions)
+  const maxQuestions = useAppSelector((state) => state.consultation.dynamicMaxQuestions)
   const [currentIdx, setCurrentIdx] = useState<number>(0)
   const [dynAnswer, setDynAnswer] = useState<string>(() => savedDynamic[0] ?? '')
   const [doneAsking, setDoneAsking] = useState<boolean>(false)
@@ -1224,13 +1226,14 @@ export const AiQuestionsPage = () => {
       nextAnswers[currentIdx] = answer
       const history = buildHistory(nextAnswers)
 
-      if (history.length >= MAX_QUESTIONS) {
+      if (history.length >= maxQuestions) {
         setDoneAsking(true)
         await runFinalAnalysisAndProceed(history)
         return
       }
 
       const next = await fetchNextQuestion(symptoms, history, additionalNotes)
+      dispatch(setQuestionRange({ minQuestions: next.minQuestions, maxQuestions: next.maxQuestions }))
       if (next.done) {
         setDoneAsking(true)
         await runFinalAnalysisAndProceed(history)
@@ -1257,6 +1260,7 @@ export const AiQuestionsPage = () => {
     setQuestionError(null)
     try {
       const first = await fetchNextQuestion(symptoms, [])
+      dispatch(setQuestionRange({ minQuestions: first.minQuestions, maxQuestions: first.maxQuestions }))
       if (first.done === false && first.question) {
         dispatch(setAiQuestions([first.question]))
         setCurrentIdx(0)
@@ -1332,9 +1336,9 @@ export const AiQuestionsPage = () => {
           <p className="text-center text-xs text-muted">
             {t('aiQuestions.progress', {
               current: questionNum,
-              min: MIN_QUESTIONS,
-              max: MAX_QUESTIONS,
-            }) || `Question ${questionNum} (${MIN_QUESTIONS}–${MAX_QUESTIONS} total)`}
+              min: minQuestions,
+              max: maxQuestions,
+            }) || `Question ${questionNum} (${minQuestions}–${maxQuestions} total)`}
           </p>
           <div className="space-y-6">
             <section ref={dynSectionRef} className="card space-y-4 p-5">
@@ -2299,6 +2303,9 @@ export const CreatePrescriptionPage = () => {
         showToast(t('toast.savedDraft'))
       }
       return prescription
+    } catch {
+      showToast(t('common.tryAgain') || 'Unable to save prescription. Please try again.')
+      return null
     } finally {
       setLoading(false)
     }
@@ -2400,7 +2407,7 @@ export const EditPrescriptionPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { id = '' } = useParams()
-  const { showSequentialToasts } = useToast()
+  const { showSequentialToasts, showToast } = useToast()
   const [loading, setLoading] = useState(true)
   const [consultationId, setConsultationId] = useState('')
   const [patientName, setPatientName] = useState('Patient')
@@ -2478,6 +2485,8 @@ export const EditPrescriptionPage = () => {
                 t('toast.patientNotified', { name: patientName }),
               ])
               navigate('/prescription-approved')
+            } catch {
+              showToast(t('common.tryAgain') || 'Unable to approve prescription. Please try again.')
             } finally {
               setLoading(false)
             }
@@ -3161,7 +3170,7 @@ export const HistoryPage = () => {
                         })
                     }}
                   >
-                    {t('history.viewPrescription')} →
+                    {t('history.viewPrescription')} 
                   </button>
                 </div>
               ))}

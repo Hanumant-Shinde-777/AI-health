@@ -170,7 +170,7 @@ const DoctorPatientsPage = () => {
                     className="py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 active:scale-[0.98]"
                     onClick={() => navigate(`/doctor-consultation/${item.id}`)}
                   >
-                    {t('common.view')} →
+                    {t('common.view')} 
                   </button>
                   {reviewed && item.caseStatus === 'PRESCRIPTION_READY' ? (
                     <div className="border-t border-border/60 sm:border-l sm:border-t-0">

@@ -56,6 +56,8 @@ export interface NextQuestionResult {
   questionNumber?: number
   minQuestions?: number
   maxQuestions?: number
+  flowType?: 'dataset' | 'groq' | 'emergency'
+  confidenceReached?: boolean
 }
 
 export const fetchNextQuestion = async (

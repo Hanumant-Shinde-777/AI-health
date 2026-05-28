@@ -1,6 +1,8 @@
 import client from '@/services/apiClient'
+import axios from 'axios'
 import type { Prescription, PrescriptionPayload } from '@/types'
 import { updateConsultationCaseStatus } from '@/services/consultationsService'
+import { useDoctorDashboardStore } from '@/store/slices/doctorDashboardStore'
 import {
   delay,
   generateId,
@@ -16,11 +18,17 @@ import {
 } from '@/utils/userScope'
 import { notifyPatientPrescriptionReady } from '@/utils/notifications'
 
+const shouldUseMockFallback = (error: unknown): boolean =>
+  axios.isAxiosError(error) ? !error.response : true
+
 export const getPrescription = async (id: string): Promise<Prescription> => {
   try {
     const response = await client.get<Prescription>(`/prescriptions/${id}`)
     return response.data
-  } catch {
+  } catch (error) {
+    if (!shouldUseMockFallback(error)) {
+      throw error
+    }
     await delay()
     const patientId = getCurrentPatientId()
     const pool = patientId
@@ -38,7 +46,10 @@ export const getPrescriptions = async (): Promise<Prescription[]> => {
   try {
     const response = await client.get<Prescription[]>('/prescriptions')
     return response.data
-  } catch {
+  } catch (error) {
+    if (!shouldUseMockFallback(error)) {
+      throw error
+    }
     await delay()
     const patientId = getCurrentPatientId()
     if (!patientId) {
@@ -52,7 +63,10 @@ export const createPrescription = async (data: PrescriptionPayload): Promise<Pre
   try {
     const response = await client.post<Prescription>('/prescriptions', data)
     return response.data
-  } catch {
+  } catch (error) {
+    if (!shouldUseMockFallback(error)) {
+      throw error
+    }
     await delay()
     const prescriptions = getMockPrescriptions()
     const consultation = getMockConsultations().find((item) => item.id === data.consultationId)
@@ -89,7 +103,10 @@ export const updatePrescription = async (
   try {
     const response = await client.patch<Prescription>(`/prescriptions/${id}`, data)
     return response.data
-  } catch {
+  } catch (error) {
+    if (!shouldUseMockFallback(error)) {
+      throw error
+    }
     await delay()
     const prescriptions = getMockPrescriptions()
     const index = prescriptions.findIndex((item) => item.id === id)
@@ -119,6 +136,9 @@ export const approvePrescription = async (id: string): Promise<Prescription> => 
     const response = await client.patch<Prescription>(`/prescriptions/${id}/approve`)
     const approved = response.data
     if (approved.consultationId) {
+      useDoctorDashboardStore.getState().markCaseReviewed(approved.consultationId)
+    }
+    if (approved.consultationId) {
       try {
         await updateConsultationCaseStatus(approved.consultationId, 'PRESCRIPTION_READY', {
           reviewedAt: new Date().toISOString(),
@@ -136,7 +156,10 @@ export const approvePrescription = async (id: string): Promise<Prescription> => 
       }
     }
     return approved
-  } catch {
+  } catch (error) {
+    if (!shouldUseMockFallback(error)) {
+      throw error
+    }
     await delay()
     const updated = await updatePrescription(id, { status: 'APPROVED' })
     const prescriptions = getMockPrescriptions()
@@ -152,6 +175,7 @@ export const approvePrescription = async (id: string): Promise<Prescription> => 
       const approved = prescriptions[index]
       const consultation = getMockConsultations().find((c) => c.id === approved.consultationId)
       if (consultation) {
+        useDoctorDashboardStore.getState().markCaseReviewed(consultation.id)
         await updateConsultationCaseStatus(consultation.id, 'PRESCRIPTION_READY', {
           reviewedAt: new Date().toISOString(),
         })
@@ -176,7 +200,10 @@ export const downloadPdf = async (id: string): Promise<Blob> => {
       responseType: 'blob',
     })
     return response.data
-  } catch {
+  } catch (error) {
+    if (!shouldUseMockFallback(error)) {
+      throw error
+    }
     await delay()
     const prescription = await getPrescription(id)
     const lines = [

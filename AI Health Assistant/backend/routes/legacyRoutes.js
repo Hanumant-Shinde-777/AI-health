@@ -109,18 +109,12 @@ router.put('/doctors/profile', roleMiddleware('doctor'), asyncHandler(async (req
 }))
 
 router.post('/consultations', roleMiddleware('patient'), asyncHandler(async (req, res) => {
-  let doctorId = req.body.doctorId
-  // Validate doctorId exists; fall back to first verified doctor if missing or invalid
-  if (doctorId) {
-    const exists = await prisma.doctor.findUnique({ where: { id: doctorId } })
-    if (!exists) doctorId = null
-  }
-  if (!doctorId) {
-    const first = await prisma.doctor.findFirst({ where: { isVerified: true } })
-      ?? await prisma.doctor.findFirst()
-    doctorId = first?.id ?? null
-  }
+  const doctorId = req.body.doctorId
   if (!doctorId || !req.body.symptoms) throw new ApiError(400, 'Missing fields', 'VALIDATION')
+  const selectedDoctor = await prisma.doctor.findUnique({ where: { id: doctorId } })
+  if (!selectedDoctor?.isVerified) {
+    throw new ApiError(400, 'Selected doctor is invalid', 'VALIDATION')
+  }
   const row = await prisma.consultation.create({
     data: {
       patientId: req.user.id,
@@ -224,31 +218,70 @@ router.get('/prescriptions/:id', asyncHandler(async (req, res) => {
 }))
 
 router.post('/prescriptions', roleMiddleware('doctor'), asyncHandler(async (req, res) => {
-  const { consultationId, patientId, diagnosis, medicines, advice, followUpDate } = req.body
-  if (!consultationId || !patientId || !diagnosis) {
-    throw new ApiError(400, 'consultationId, patientId and diagnosis are required', 'VALIDATION')
+  const { consultationId, patientId, diagnosis, medicines, advice, followUpDate, status } = req.body
+  if (!consultationId || !diagnosis) {
+    throw new ApiError(400, 'consultationId and diagnosis are required', 'VALIDATION')
   }
   const consultation = await prisma.consultation.findUnique({ where: { id: consultationId } })
   if (!consultation || consultation.doctorId !== req.user.id) {
     throw new ApiError(404, 'Consultation not found', 'NOT_FOUND')
   }
-  const row = await prisma.prescription.create({
+  const resolvedPatientId = patientId ?? consultation.patientId
+  if (!resolvedPatientId) {
+    throw new ApiError(400, 'Unable to resolve patient for prescription', 'VALIDATION')
+  }
+
+  const normalizedStatus = String(status ?? '').toLowerCase()
+  const resolvedStatus = normalizedStatus === 'approved' ? 'approved' : 'draft'
+
+  // Idempotent create/update by consultationId (unique in schema).
+  // If a doctor saves draft multiple times, update existing prescription instead of 409 conflict.
+  const existing = await prisma.prescription.findUnique({
+    where: { consultationId },
+    include: { doctor: true, patient: true },
+  })
+
+  if (existing) {
+    if (existing.doctorId !== req.user.id) {
+      throw new ApiError(403, 'Forbidden', 'FORBIDDEN')
+    }
+    const updated = await prisma.prescription.update({
+      where: { id: existing.id },
+      data: {
+        patientId: resolvedPatientId,
+        diagnosis,
+        medicines: medicines ?? [],
+        advice,
+        followUpDate: followUpDate ? new Date(followUpDate) : null,
+        status: resolvedStatus,
+      },
+      include: { doctor: true, patient: true },
+    })
+    return res.json(mapPrescription(updated))
+  }
+
+  const created = await prisma.prescription.create({
     data: {
       consultationId,
-      patientId,
+      patientId: resolvedPatientId,
       doctorId: req.user.id,
       diagnosis,
       medicines: medicines ?? [],
       advice,
       followUpDate: followUpDate ? new Date(followUpDate) : null,
-      status: 'draft',
+      status: resolvedStatus,
     },
     include: { doctor: true, patient: true },
   })
-  res.status(201).json(mapPrescription(row))
+  res.status(201).json(mapPrescription(created))
 }))
 
 router.patch('/prescriptions/:id', roleMiddleware('doctor'), asyncHandler(async (req, res) => {
+  const existing = await prisma.prescription.findUnique({ where: { id: req.params.id } })
+  if (!existing || existing.doctorId !== req.user.id) {
+    throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
+  }
+
   const row = await prisma.prescription.update({
     where: { id: req.params.id },
     data: {

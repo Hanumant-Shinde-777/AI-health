@@ -55,13 +55,15 @@ router.post('/next-question', asyncHandler(async (req, res) => {
   const safeHistory = Array.isArray(history) ? history : []
   const result = await nextFollowUpQuestion(symptoms.trim(), safeHistory, additionalNotes ?? '')
   const answeredCount = safeHistory.length
+  const minQuestions = Number.isFinite(result.minQuestions) ? result.minQuestions : 7
+  const maxQuestions = Number.isFinite(result.maxQuestions) ? result.maxQuestions : 15
   res.json({
     success: true,
     data: {
       ...result,
       questionNumber: result.done ? answeredCount : answeredCount + 1,
-      minQuestions: 7,
-      maxQuestions: 15,
+      minQuestions,
+      maxQuestions,
       answeredCount,
     },
   })

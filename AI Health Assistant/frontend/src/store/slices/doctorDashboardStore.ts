@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { getDoctorConsultations } from '@/services/consultationsService'
 import type { Consultation } from '@/types'
+import { getCurrentDoctorId } from '@/utils/userScope'
 import {
   computeDoctorDashboardStats,
   getPendingCases,
@@ -14,11 +15,22 @@ const emptyStats: DoctorDashboardStats = {
   total: 0,
 }
 
-const deriveFromCases = (cases: Consultation[]) => ({
-  cases,
-  stats: computeDoctorDashboardStats(cases),
-  pendingCases: getPendingCases(cases),
-})
+const scopeCasesToCurrentDoctor = (cases: Consultation[]): Consultation[] => {
+  const currentDoctorId = getCurrentDoctorId()
+  if (!currentDoctorId) {
+    return cases
+  }
+  return cases.filter((item) => item.doctorId === currentDoctorId)
+}
+
+const deriveFromCases = (cases: Consultation[]) => {
+  const scopedCases = scopeCasesToCurrentDoctor(cases)
+  return {
+    cases: scopedCases,
+    stats: computeDoctorDashboardStats(scopedCases),
+    pendingCases: getPendingCases(scopedCases),
+  }
+}
 
 interface DoctorDashboardState {
   cases: Consultation[]
@@ -29,6 +41,7 @@ interface DoctorDashboardState {
   lastUpdated: Date | null
   fetchCases: () => Promise<void>
   upsertCase: (updated: Consultation) => void
+  markCaseReviewed: (consultationId: string) => void
   setCases: (cases: Consultation[]) => void
 }
 
@@ -61,6 +74,26 @@ export const useDoctorDashboardStore = create<DoctorDashboardState>((set, get) =
     const nextCases = existing.some((c) => c.id === updated.id)
       ? existing.map((c) => (c.id === updated.id ? updated : c))
       : [updated, ...existing]
+    set({
+      ...deriveFromCases(nextCases),
+      lastUpdated: new Date(),
+    })
+  },
+
+  markCaseReviewed: (consultationId) => {
+    const existing = get().cases
+    const target = existing.find((item) => item.id === consultationId)
+    if (!target) {
+      return
+    }
+    const nextCases = existing.map((item) => (item.id === consultationId
+      ? {
+          ...item,
+          status: 'REVIEWED',
+          caseStatus: 'PRESCRIPTION_READY',
+          reviewedAt: new Date().toISOString(),
+        }
+      : item))
     set({
       ...deriveFromCases(nextCases),
       lastUpdated: new Date(),

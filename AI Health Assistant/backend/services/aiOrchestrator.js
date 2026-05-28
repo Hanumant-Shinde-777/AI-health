@@ -8,6 +8,9 @@ import { detectEmergency } from './emergencyService.js'
 import { findSymptomMatch } from './datasetService.js'
 import { analyzeWithGroq, finalAnalysisWithGroq, nextQuestionWithGroq } from './groqService.js'
 
+const DATASET_MAX_QUESTIONS = 7
+const DATASET_EARLY_STOP_CONFIDENCE = 88
+
 /**
  * Normalizes riskLevel strings to a consistent format.
  * Dataset uses "Low"/"Medium"/"High"/"Critical"; frontend uses "LOW"/"MEDIUM"/"HIGH"
@@ -58,6 +61,16 @@ export const analyzeSymptoms = async (symptoms) => {
   // ── Layer 2: Dataset Engine ───────────────────────────────────────────────
   const datasetResult = findSymptomMatch(symptoms)
   if (datasetResult.found) {
+    const datasetQuestions = Array.isArray(datasetResult.questions)
+      ? datasetResult.questions
+          .filter((item) => item && typeof item.question === 'string' && Array.isArray(item.options))
+          .map((item) => ({
+            question: item.question.trim(),
+            options: item.options.map((opt) => String(opt).trim()).filter(Boolean),
+          }))
+          .filter((item) => item.question && item.options.length >= 2)
+          .slice(0, DATASET_MAX_QUESTIONS)
+      : []
     return {
       isEmergency: false,
       detectedSymptom: datasetResult.detectedSymptom,
@@ -66,9 +79,7 @@ export const analyzeSymptoms = async (symptoms) => {
       specialization: datasetResult.specialization,
       riskLevel: normalizeRisk(datasetResult.riskLevel),
       confidence: datasetResult.confidence,
-      // IMPORTANT: follow-up questions must be generated dynamically per-answer.
-      // We intentionally do not return dataset questions here.
-      questions: [],
+      questions: datasetQuestions,
       advice: datasetResult.advice,
       source: 'dataset',
     }
@@ -122,13 +133,102 @@ export const analyzeSymptoms = async (symptoms) => {
 export const nextFollowUpQuestion = async (symptoms, history = [], additionalNotes = '') => {
   const emergency = detectEmergency(symptoms)
   if (emergency.isEmergency) {
-    return { done: true, rationale: 'Emergency detected; stop follow-up questions.' }
+    return {
+      done: true,
+      rationale: 'Emergency detected; stop follow-up questions.',
+      flowType: 'emergency',
+      minQuestions: 0,
+      maxQuestions: 0,
+      confidenceReached: true,
+    }
   }
 
-  if (!process.env.GROQ_API_KEY) {
+  const safeHistory = Array.isArray(history)
+    ? history
+        .filter((item) => item && typeof item.question === 'string' && typeof item.answer === 'string')
+        .map((item) => ({ question: item.question.trim(), answer: item.answer.trim() }))
+        .filter((item) => item.question && item.answer)
+    : []
+
+  const datasetResult = findSymptomMatch(symptoms)
+  const datasetQuestions = datasetResult?.found && Array.isArray(datasetResult.questions)
+    ? datasetResult.questions
+        .filter((item) => item && typeof item.question === 'string' && Array.isArray(item.options))
+        .map((item) => ({
+          question: item.question.trim(),
+          options: item.options.map((opt) => String(opt).trim()).filter(Boolean),
+        }))
+        .filter((item) => item.question && item.options.length >= 2)
+        .slice(0, DATASET_MAX_QUESTIONS)
+    : []
+
+  const canUseGroq = Boolean(process.env.GROQ_API_KEY)
+
+  if (datasetResult?.found && datasetQuestions.length > 0) {
+    const answeredCount = safeHistory.length
+    const confidenceReached = Number(datasetResult.confidence) >= DATASET_EARLY_STOP_CONFIDENCE
+    const datasetQuestionTarget = Math.min(DATASET_MAX_QUESTIONS, datasetQuestions.length)
+
+    // Dataset-first flow: if confidence is already high and we collected at least one answer, stop early.
+    if (confidenceReached && answeredCount >= 1) {
+      return {
+        done: true,
+        rationale: `Dataset confidence threshold reached (${datasetResult.confidence}%).`,
+        flowType: 'dataset',
+        minQuestions: 1,
+        maxQuestions: datasetQuestionTarget,
+        confidenceReached: true,
+      }
+    }
+
+    // Keep asking dataset questions first (1..7, limited by dataset availability).
+    if (answeredCount < datasetQuestionTarget) {
+      return {
+        done: false,
+        question: datasetQuestions[answeredCount],
+        rationale: 'Dataset-first question flow active.',
+        flowType: 'dataset',
+        minQuestions: 1,
+        maxQuestions: datasetQuestionTarget,
+        confidenceReached: false,
+      }
+    }
+
+    // Still unclear after dataset phase -> continue with Groq interview (7..15),
+    // carrying full dataset Q/A history as context.
+    if (!canUseGroq) {
+      return {
+        done: true,
+        rationale: `Completed ${datasetQuestionTarget} dataset follow-up questions.`,
+        flowType: 'dataset',
+        minQuestions: 1,
+        maxQuestions: datasetQuestionTarget,
+        confidenceReached: false,
+      }
+    }
+
+    const groqAfterDataset = await nextQuestionWithGroq(symptoms, safeHistory, additionalNotes)
+    return {
+      ...groqAfterDataset,
+      flowType: 'groq',
+      minQuestions: 7,
+      maxQuestions: 15,
+      confidenceReached: Boolean(groqAfterDataset.done),
+    }
+  }
+
+  if (!canUseGroq) {
     throw new Error('Dynamic follow-up questioning requires GROQ_API_KEY configuration.')
   }
-  return await nextQuestionWithGroq(symptoms, history, additionalNotes)
+
+  const groqResult = await nextQuestionWithGroq(symptoms, safeHistory, additionalNotes)
+  return {
+    ...groqResult,
+    flowType: 'groq',
+    minQuestions: 7,
+    maxQuestions: 15,
+    confidenceReached: Boolean(groqResult.done),
+  }
 }
 
 /**

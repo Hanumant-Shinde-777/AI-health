@@ -19,6 +19,8 @@ interface ConsultationState {
   disease: string
   confidence: number
   dynamicAnswers: string[]
+  dynamicMinQuestions: number
+  dynamicMaxQuestions: number
   isEmergency: boolean
   aiAdvice: string
   emergencyMessage: string
@@ -40,6 +42,8 @@ const initialState: ConsultationState = {
   disease: '',
   confidence: 0,
   dynamicAnswers: [],
+  dynamicMinQuestions: 7,
+  dynamicMaxQuestions: 15,
   isEmergency: false,
   aiAdvice: '',
   emergencyMessage: '',
@@ -76,6 +80,10 @@ const consultationSlice = createSlice({
     },
     setCurrentQuestionIndex: (state, action: PayloadAction<number>) => {
       state.currentQuestionIndex = action.payload
+    },
+    setQuestionRange: (state, action: PayloadAction<{ minQuestions?: number; maxQuestions?: number }>) => {
+      if (action.payload.minQuestions != null) state.dynamicMinQuestions = action.payload.minQuestions
+      if (action.payload.maxQuestions != null) state.dynamicMaxQuestions = action.payload.maxQuestions
     },
     setRiskLevel: (state, action: PayloadAction<RiskLevel | null>) => {
       state.riskLevel = action.payload
@@ -176,6 +184,7 @@ export const {
   setAnswer,
   setConsultationId,
   setCurrentQuestionIndex,
+  setQuestionRange,
   setDynamicAnswer,
   syncDynamicQaToAnswers,
   setNotes,

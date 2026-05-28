@@ -91,7 +91,9 @@ export const submitConsultation = async (
     }
 
     saveMockConsultations(consultations)
-    useDoctorDashboardStore.getState().upsertCase(nextConsultation)
+    if (nextConsultation.doctorId && nextConsultation.doctorId === getCurrentDoctorId()) {
+      useDoctorDashboardStore.getState().upsertCase(nextConsultation)
+    }
 
     if (data.doctorId) {
       notifyDoctorNewCase({
@@ -182,7 +184,9 @@ export const updateConsultationCaseStatus = async (
       caseStatus,
       ...extra,
     })
-    useDoctorDashboardStore.getState().upsertCase(response.data)
+    if (!response.data.doctorId || response.data.doctorId === getCurrentDoctorId()) {
+      useDoctorDashboardStore.getState().upsertCase(response.data)
+    }
     return response.data
   } catch {
     await delay()
@@ -209,7 +213,9 @@ export const updateConsultationCaseStatus = async (
     }
     consultations[index] = next
     saveMockConsultations(consultations)
-    useDoctorDashboardStore.getState().upsertCase(next)
+    if (!next.doctorId || next.doctorId === getCurrentDoctorId()) {
+      useDoctorDashboardStore.getState().upsertCase(next)
+    }
     return next
   }
 }
