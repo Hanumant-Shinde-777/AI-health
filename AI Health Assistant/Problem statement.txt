@@ -413,3 +413,216 @@ Add empty state message on every screen when API returns no data — "No consult
 Add error message on every screen if API call fails — "Failed to load data. Please try again."
 
 Do NOT hardcode any patient or doctor data anywhere in the app. Do NOT change any UI layout, styling, or navigation flow. Do NOT break any existing working feature.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Heightybrid paipline
+
+Hybrid AI Pipeline — Symptom Analysis
+Current structure in your app: three layers, two phases (triage → interview → final diagnosis), with dataset-first and Groq fallback/continuation.
+
+Pipeline overview
+Patient input
+Phase 1 — Initial triage
+Phase 2 — Follow-up interview
+Phase 3 — Final diagnosis
+Outputs
+emergency
+match
+success
+confidence ≥ 88%
+done
+ok
+no match
+fail
+still unclear after dataset Qs
+no dataset match
+fail
+Stop Q&A → emergency UI
+Triage from dataset
+Triage from Groq
+Symptoms text / voice
+POST /api/ai/analyze-symptoms
+Layer 0: Emergency detection
+Layer 1: Smart Dataset Engine
+Layer 2: Groq initial analysis
+Layer 3: None fallback
+POST /api/ai/next-question
+Dataset path: Q1–Q7
+Groq path: Q7–Q15 dynamic
+Handoff: dataset → Groq with history
+POST /api/ai/final-analysis
+Groq final analysis
+Dataset fallback
+Disease / confidence %
+Specialization
+Risk level
+Advice + disclaimer
+Doctor list flow
+Layer stack (Phase 1 — triage)
+Layer	Service	Trigger	Cost	Output
+0 — Emergency
+emergencyService.js
+Keyword / pattern match
+None
+isEmergency, message, stop pipeline
+1 — Dataset
+datasetService.js + symptoms.json
+Score ≥ threshold on keywords
+None
+Disease, body system, specialization, risk, confidence, advice, source: dataset
+2 — Groq
+groqService.analyzeWithGroq()
+No dataset match + GROQ_API_KEY
+API
+Same triage fields, source: groq
+3 — Fallback
+Orchestrator
+No match, Groq down
+None
+Generic GP advice, source: none
+API: POST /api/ai/analyze-symptoms
+Orchestrator: backend/services/aiOrchestrator.js → analyzeSymptoms()
+
+Interview engine (Phase 2 — one question at a time)
+API: POST /api/ai/next-question
+Orchestrator: nextFollowUpQuestion()
+Input: symptoms, history[], additionalNotes?
+
+Decision tree
+                    next-question
+                         │
+              ┌──────────┴──────────┐
+         Emergency?              No
+              │                    │
+         done: true          Dataset match?
+         flow: emergency          │
+                    ┌────────────┴────────────┐
+                   YES                        NO
+                    │                          │
+            Dataset phase                 Groq-only
+            (flowType: dataset)           (flowType: groq)
+                    │                   min 7, max 15
+    ┌───────────────┼───────────────┐
+    │               │               │
+ confidence      more dataset    dataset Qs
+ ≥ 88% +         questions?      exhausted
+ ≥ 1 answer          │               │
+    │           ask Qn            │
+    │               │          still unclear?
+ done: true        │               │
+    │               │          Groq continues
+    │               │          (history includes
+    │               │           dataset Q/A)
+    └───────────────┴───────────────┘
+                    │
+              Groq path rules
+              (when active)
+                    │
+         min 7 total answers
+         max 15 total answers
+         no repeat questions
+         done when clarity OK
+Path A — Dataset-first (hybrid core)
+Step	Behavior
+1
+Ask dataset questions sequentially (up to 7, or fewer if disease has fewer in JSON)
+2
+Early stop: if dataset confidence ≥ 88% and ≥ 1 answer → done: true
+3
+If dataset phase ends and still unclear → Groq takes over with full history (dataset Q/A as context)
+4
+Groq enforces 7–15 total answered questions in session
+Path B — Groq-only
+Step	Behavior
+1
+No dataset match → Groq generates every question dynamically
+2
+7–15 questions, one per screen
+3
+Early done when clarity sufficient (after min 7) or forced stop at 15
+Groq engine: backend/services/groqService.js → nextQuestionWithGroq()
+Models: llama-3.3-70b-versatile → fallback llama-3.1-8b-instant
+
+Final diagnosis (Phase 3)
+API: POST /api/ai/final-analysis
+Orchestrator: finalAnalysis()
+
+All collected Q/A + symptoms + notes
+              │
+              ▼
+    ┌─────────────────────┐
+    │  Groq Final Analysis │  ← primary (both paths)
+    └─────────────────────┘
+              │
+         Groq fails?
+              ▼
+    ┌─────────────────────┐
+    │  Dataset fallback    │
+    └─────────────────────┘
+              │
+              ▼
+    disease, confidence %, specialization,
+    risk level, advice
+Same final call whether the patient went dataset-only, dataset→Groq, or Groq-only.
+
+Response contract (interview step)
+Field	Meaning
+done
+Stop asking; run final analysis
+question
+Next chip-style question + options
+flowType
+dataset | groq | emergency
+minQuestions / maxQuestions
+UI progress (e.g. 1–4 dataset, 7–15 Groq)
+confidenceReached
+Early-stop flag
+questionNumber / answeredCount
+Progress counters
+Frontend flow (patient UI)
+SymptomsPage
+    │ analyzeSymptoms()
+    │ fetchNextQuestion([])
+    ▼
+AiQuestionsPage  ◄── loop fetchNextQuestion(history)
+    │ done === true
+    │ runFinalAnalysis()
+    ▼
+AdditionalNotesPage
+    ▼
+SummaryPage → pick doctor → submitConsultation()
+State: consultationSlice — aiQuestions, dynamicAnswers, dynamicMinQuestions, dynamicMaxQuestions, triage fields.
+
+Config constants (backend)
+Constant	Value	Role
+DATASET_MAX_QUESTIONS
+7
+Cap on dataset phase
+DATASET_EARLY_STOP_CONFIDENCE
+88
+Stop dataset phase early
+MIN_DIAGNOSTIC_QUESTIONS
+7
+Groq phase minimum
+MAX_DIAGNOSTIC_QUESTIONS
+15
+Groq phase maximum
+Design principles (hybrid)
+Dataset first — fast, free, structured questions when keywords match.
+Groq when needed — no match, or dataset phase insufficient clarity.
+Context carryover — Groq sees all prior dataset Q/A in history.
+Single final brain — Groq final analysis for both paths (dataset fallback if API down).
+Safety first — emergency layer bypasses normal Q&A.
+One question per screen — no batch/template dump from analyze step.
+File map
+backend/
+  data/symptoms.json           ← Smart Dataset
+  services/emergencyService.js ← Layer 0
+  services/datasetService.js   ← Layer 1
+  services/groqService.js      ← Layer 2 + interview + final
+  services/aiOrchestrator.js   ← Hybrid coordinator
+  routes/aiRoutes.js           ← REST endpoints
+frontend/
+  services/aiService.ts
+  pages/shared/_screens.tsx    ← SymptomsPage, AiQuestionsPage
+  store/slices/consultationSlice.ts
+This is the Hybrid AI Pipeline as it runs today: Emergency → Dataset → (optional Groq continuation) → Groq final, with Groq-only when the dataset does not match.
