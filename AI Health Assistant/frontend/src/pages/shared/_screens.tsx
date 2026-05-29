@@ -54,6 +54,10 @@ import { getDoctorProfile, getDoctors, updateDoctorProfile } from '@/services/do
 import { getProfile, loadPatientSessionData, updateMedicalHistory, updateProfile } from '@/services/patientsService'
 import { analyzeSymptoms, fetchNextQuestion, runFinalAnalysis } from '@/services/aiService'
 import {
+  assignEmergencyDoctor,
+  getEmergencyRecommendedDoctors,
+} from '@/services/emergencyService'
+import {
   approvePrescription,
   createPrescription,
   downloadPdf,
@@ -994,6 +998,7 @@ export const SymptomsPage = () => {
             questions: [],
             aiAdvice: result.advice,
             emergencyMessage: result.emergencyMessage,
+            matchedKeyword: result.matchedKeyword,
           }),
         )
         navigate('/ai-questions')
@@ -1140,6 +1145,12 @@ export const AiQuestionsPage = () => {
   const savedDynamic = useAppSelector((state) => state.consultation.dynamicAnswers)
   const isEmergency = useAppSelector((state) => state.consultation.isEmergency)
   const emergencyMessage = useAppSelector((state) => state.consultation.emergencyMessage)
+  const emergencyMatchedKeyword = useAppSelector((state) => state.consultation.emergencyMatchedKeyword)
+  const [emergencyStep, setEmergencyStep] = useState<'alert' | 'doctors'>('alert')
+  const [emergencyDoctors, setEmergencyDoctors] = useState<MatchedDoctor[]>([])
+  const [loadingEmergencyDoctors, setLoadingEmergencyDoctors] = useState(false)
+  const [assigningDoctorId, setAssigningDoctorId] = useState<string | null>(null)
+  const [assignedDoctorIds, setAssignedDoctorIds] = useState<string[]>([])
   const hasDynamic = aiQuestions.length >= 1
   const symptoms = useAppSelector((state) => state.consultation.currentSymptoms)
   const additionalNotes = useAppSelector((state) => state.consultation.symptomData.additionalNotes)
@@ -1187,6 +1198,15 @@ export const AiQuestionsPage = () => {
       })
     }
   }, [showTemperature, hasDynamic, currentIdx])
+
+  useEffect(() => {
+    if (!isEmergency || emergencyStep !== 'doctors' || !symptoms) return
+    setLoadingEmergencyDoctors(true)
+    getEmergencyRecommendedDoctors(symptoms)
+      .then((payload) => setEmergencyDoctors(payload.doctors))
+      .catch(() => setEmergencyDoctors([]))
+      .finally(() => setLoadingEmergencyDoctors(false))
+  }, [isEmergency, emergencyStep, symptoms])
 
   const buildHistory = (answersByIndex: string[]) =>
     aiQuestions
@@ -1292,16 +1312,89 @@ export const AiQuestionsPage = () => {
   }
 
   if (isEmergency) {
+    const handleAssignDoctor = async (doctor: MatchedDoctor) => {
+      if (!symptoms || assignedDoctorIds.includes(doctor.id)) return
+      setAssigningDoctorId(doctor.id)
+      try {
+        await assignEmergencyDoctor({
+          doctorId: doctor.id,
+          detectedSymptom: emergencyMatchedKeyword || symptoms,
+          matchedKeyword: emergencyMatchedKeyword || undefined,
+          symptomText: symptoms,
+        })
+        setAssignedDoctorIds((ids) => [...ids, doctor.id])
+        showToast(t('emergencyAlert.doctorAdded', { name: doctor.name }))
+      } catch {
+        showToast(t('common.tryAgain') || 'Could not assign doctor. Please try again.')
+      } finally {
+        setAssigningDoctorId(null)
+      }
+    }
+
+    if (emergencyStep === 'alert') {
+      return (
+        <Layout>
+          <div className="page-padding space-y-6 bg-background">
+            <Header title={t('aiQuestions.title')} onBack={() => navigate('/symptoms')} />
+            <div className="card space-y-3 border-2 border-danger/40 bg-danger/5 p-5">
+              <p className="text-base font-bold text-danger">{t('symptoms.emergencyTitle')}</p>
+              <p className="text-sm text-foreground">
+                {emergencyMessage ||
+                  t('emergencyAlert.body', {
+                    symptom: emergencyMatchedKeyword || symptoms,
+                  })}
+              </p>
+            </div>
+            <button type="button" className="btn-primary" onClick={() => setEmergencyStep('doctors')}>
+              {t('common.ok')}
+            </button>
+          </div>
+        </Layout>
+      )
+    }
+
     return (
       <Layout>
-        <div className="page-padding space-y-6 bg-background">
-          <Header title={t('aiQuestions.title')} onBack={() => navigate('/symptoms')} />
-          <div className="card space-y-3 border-danger/30 bg-danger/5 p-5">
-            <p className="text-sm font-semibold text-danger">{t('symptoms.emergencyTitle') || 'Possible emergency'}</p>
-            <p className="text-sm text-foreground">{emergencyMessage || t('symptoms.emergencyBody')}</p>
+        <div className="page-padding space-y-5 bg-background pb-8">
+          <Header title={t('emergencyAlert.relevantDoctorsTitle')} onBack={() => setEmergencyStep('alert')} />
+          <p className="text-sm text-muted">{t('emergencyAlert.relevantDoctorsSub')}</p>
+          {loadingEmergencyDoctors ? <LoadingSpinner className="py-8" /> : null}
+          {!loadingEmergencyDoctors && emergencyDoctors.length === 0 ? (
+            <p className="text-sm text-muted">{t('emergencyAlert.noDoctors')}</p>
+          ) : null}
+          <div className="space-y-3">
+            {emergencyDoctors.map((doctor) => {
+              const added = assignedDoctorIds.includes(doctor.id)
+              return (
+                <div key={doctor.id} className="card flex items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-foreground">{doctor.name}</p>
+                    <p className="text-sm text-muted">{doctor.specialization}</p>
+                    {doctor.hospital ? <p className="text-xs text-muted">{doctor.hospital}</p> : null}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={added || assigningDoctorId === doctor.id}
+                    className={classNames(
+                      'shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold',
+                      added
+                        ? 'bg-success/15 text-success'
+                        : 'bg-primary text-white active:scale-95',
+                    )}
+                    onClick={() => void handleAssignDoctor(doctor)}
+                  >
+                    {added
+                      ? t('emergencyAlert.added')
+                      : assigningDoctorId === doctor.id
+                        ? '...'
+                        : t('emergencyAlert.addDoctor')}
+                  </button>
+                </div>
+              )
+            })}
           </div>
-          <button type="button" className="btn-primary" onClick={() => navigate('/home')}>
-            {t('common.ok') || 'OK'}
+          <button type="button" className="btn-secondary w-full" onClick={() => navigate('/home')}>
+            {t('emergencyAlert.backHome')}
           </button>
         </div>
       </Layout>

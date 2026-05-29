@@ -11,6 +11,7 @@ import prescriptionRoutes from './routes/prescriptionRoutes.js'
 import legacyRoutes from './routes/legacyRoutes.js'
 import followUpRoutes from './routes/followUpRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
+import emergencyRoutes from './routes/emergencyRoutes.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 
 const app = express()
@@ -52,6 +53,9 @@ app.use('/api/follow-ups', followUpRoutes)
 
 // AI Orchestrator routes (no auth required)
 app.use('/api/ai', aiRoutes)
+
+// Emergency alerts (separate from consultation queue)
+app.use('/api/emergency', emergencyRoutes)
 
 // Frontend legacy paths (/api/patients, /api/consultations, …)
 app.use('/api', legacyRoutes)

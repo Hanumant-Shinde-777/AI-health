@@ -23,6 +23,7 @@ import {
   type DoctorStatKey,
 } from '@/utils/doctorDashboard'
 import { getUnreadCount } from '@/utils/notifications'
+import { getDoctorActiveEmergencies, type EmergencyAlert } from '@/services/emergencyService'
 
 const STAT_CARD_STYLES: Record<
   DoctorStatKey,
@@ -68,6 +69,7 @@ const DoctorDashboardPage = () => {
   const location = useLocation()
   const [docProfile, setDocProfile] = useState(() => readDoctorProfile())
   const pendingSectionRef = useRef<HTMLDivElement>(null)
+  const emergenciesSectionRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef(0)
 
@@ -75,10 +77,17 @@ const DoctorDashboardPage = () => {
   const [doctorNotificationCount, setDoctorNotificationCount] = useState(0)
   const [activeStat, setActiveStat] = useState<DoctorStatKey | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [emergencies, setEmergencies] = useState<EmergencyAlert[]>([])
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
     await fetchCases()
+    try {
+      const emergencyRes = await getDoctorActiveEmergencies()
+      setEmergencies(emergencyRes.data)
+    } catch {
+      setEmergencies([])
+    }
     setRefreshing(false)
     setDoctorNotificationCount(getUnreadCount('DOCTOR'))
   }, [fetchCases])
@@ -107,6 +116,8 @@ const DoctorDashboardPage = () => {
   const hour = new Date().getHours()
   const greetKey =
     hour < 12 ? 'doctorDashboard.greetMorning' : hour < 17 ? 'doctorDashboard.greetAfternoon' : 'doctorDashboard.greetEvening'
+
+  const emergencyCount = emergencies.length
 
   const statEntries: Array<{ key: DoctorStatKey; label: string; count: number }> = [
     { key: 'pending', label: t('doctorDashboard.statsPending'), count: stats.pending },
@@ -245,12 +256,15 @@ const DoctorDashboardPage = () => {
                 {
                   icon: AlertTriangle,
                   label: t('doctorDashboard.actionEmergency'),
-                  onClick: () => window.alert(t('home.emergencyAlert')),
+                  onClick: () => {
+                    emergenciesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  },
                 },
                 { icon: Calendar, label: t('doctorDashboard.actionSchedule'), path: '/doctor-calendar' },
               ] as const
             ).map((item) => {
               const Icon = item.icon
+              const isEmergencyAction = item.label === t('doctorDashboard.actionEmergency')
               return (
                 <button
                   key={item.label}
@@ -264,17 +278,90 @@ const DoctorDashboardPage = () => {
                       navigate(item.path)
                     }
                   }}
-                  className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-white p-3 text-center shadow-sm transition-all active:scale-[0.96] hover:shadow"
+                  className={classNames(
+                    'relative flex flex-col items-center gap-2 rounded-2xl border p-3 text-center shadow-sm transition-all active:scale-[0.96] hover:shadow',
+                    isEmergencyAction && emergencyCount > 0
+                      ? 'border-danger/40 bg-danger/5'
+                      : 'border-border bg-white',
+                  )}
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
+                  <div
+                    className={classNames(
+                      'flex h-9 w-9 items-center justify-center rounded-xl',
+                      isEmergencyAction && emergencyCount > 0
+                        ? 'bg-danger/15 text-danger'
+                        : 'bg-gradient-to-br from-primary/20 to-primary/5 text-primary',
+                    )}
+                  >
                     <Icon size={18} />
                   </div>
-                  <span className="text-[10px] font-semibold leading-tight text-foreground">{item.label}</span>
+                  <span
+                    className={classNames(
+                      'text-[10px] font-semibold leading-tight',
+                      isEmergencyAction && emergencyCount > 0 ? 'text-danger' : 'text-foreground',
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                  {isEmergencyAction && emergencyCount > 0 ? (
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white">
+                      {emergencyCount > 9 ? '9+' : emergencyCount}
+                    </span>
+                  ) : null}
                 </button>
               )
             })}
           </div>
         </div>
+
+        {emergencyCount > 0 ? (
+          <div ref={emergenciesSectionRef} className="space-y-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={20} className="text-danger" />
+                <h2 className="text-base font-semibold text-danger">
+                  {t('emergencyAlert.activeTitle', { count: emergencyCount })}
+                </h2>
+              </div>
+              <p className="mt-1 text-sm text-muted">{t('emergencyAlert.activeSubtitle')}</p>
+            </div>
+            <div className="space-y-3">
+              {emergencies.map((item) => (
+                <div
+                  key={item.id}
+                  className="overflow-hidden rounded-2xl border-2 border-danger/25 bg-white shadow-card"
+                >
+                  <div className="flex items-start gap-3 p-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-danger/15 text-sm font-bold text-danger">
+                      {(item.patientName?.trim().charAt(0) ?? 'P').toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-bold text-foreground">{item.patientName}</p>
+                        <span className="shrink-0 text-[10px] text-muted">
+                          {formatCaseRelativeTime(item.createdAt)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-danger">{item.detectedSymptom}</p>
+                      <p className="mt-2 text-xs font-medium text-muted">
+                        {t('emergencyAlert.servicesAlerted')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="border-t border-danger/10">
+                    <button
+                      type="button"
+                      className="w-full bg-danger/5 py-2.5 text-sm font-semibold text-danger"
+                      onClick={() => navigate(`/doctor-emergency/${item.id}`)}
+                    >
+                      {t('doctorDashboard.view')}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div ref={pendingSectionRef}>
           <h2 className="mb-3 text-base font-semibold text-foreground">{t('doctorDashboard.pendingReviewsTitle')}</h2>

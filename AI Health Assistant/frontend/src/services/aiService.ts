@@ -12,6 +12,8 @@ export interface AiAnalysisResult {
   questions: AiQuestion[]
   advice: string
   emergencyMessage?: string
+  matchedKeyword?: string
+  recommendedSpecializations?: string[]
   source: 'emergency' | 'dataset' | 'groq' | 'none'
 }
 

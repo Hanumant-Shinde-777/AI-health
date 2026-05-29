@@ -11,7 +11,10 @@
       { "question": "How long have you had this fever?", "options": ["Just today", "1–2 days", "3–5 days", "More than 5 days"] },
       { "question": "How high is the temperature?", "options": ["Normal (98–99°F)", "Mild (99–100°F)", "High (100–102°F)", "Very high (>102°F)"] },
       { "question": "Do you have chills or shivering?", "options": ["Yes, severe", "Mild chills", "No", "Not sure"] },
-      { "question": "Are you experiencing body aches?", "options": ["Yes, severe", "Mild", "No"] }
+      { "question": "Are you experiencing body aches?", "options": ["Yes, severe", "Mild", "No"] },
+      { "question": "Do you have cough, sore throat, or runny nose?", "options": ["Yes, multiple symptoms", "Only cough or throat", "No respiratory symptoms"] },
+      { "question": "How is your appetite and fluid intake?", "options": ["Eating and drinking normally", "Reduced appetite", "Unable to eat or drink well"] },
+      { "question": "Were you in contact with someone who had fever recently?", "options": ["Yes", "Not sure", "No"] }
     ],
     "advice": "Rest, stay hydrated. See a doctor if fever lasts more than 3 days or exceeds 103°F."
   },
@@ -27,7 +30,10 @@
       { "question": "How long have you had these symptoms?", "options": ["Today", "2–3 days", "4–7 days", "More than a week"] },
       { "question": "Do you have a sore throat?", "options": ["Yes, severe", "Mild", "No"] },
       { "question": "Are you experiencing difficulty breathing?", "options": ["Yes, significant", "Slightly short of breath", "No"] },
-      { "question": "Do you have a fever along with the cough?", "options": ["Yes", "No", "Mild low-grade fever"] }
+      { "question": "Do you have a fever along with the cough?", "options": ["Yes", "No", "Mild low-grade fever"] },
+      { "question": "Is your nasal discharge clear or colored/thick?", "options": ["Clear or watery", "Yellow or green", "No runny nose"] },
+      { "question": "Do you have headache or facial pressure?", "options": ["Yes, significant", "Mild", "No"] },
+      { "question": "Did symptoms start after contact with a sick person?", "options": ["Yes", "Not sure", "No"] }
     ],
     "advice": "Rest, drink warm fluids, use steam inhalation. See a doctor if breathing becomes difficult."
   },
@@ -43,7 +49,10 @@
       { "question": "Where is the headache located?", "options": ["Forehead", "One side of head", "Back of head", "Entire head"] },
       { "question": "How severe is the pain (1–10)?", "options": ["Mild (1–3)", "Moderate (4–6)", "Severe (7–9)", "Unbearable (10)"] },
       { "question": "Is the headache accompanied by nausea or vomiting?", "options": ["Yes", "No", "Only nausea"] },
-      { "question": "Does light or noise worsen the headache?", "options": ["Yes, both", "Only light", "Only noise", "No"] }
+      { "question": "Does light or noise worsen the headache?", "options": ["Yes, both", "Only light", "Only noise", "No"] },
+      { "question": "How long does each episode last?", "options": ["Less than 1 hour", "1–4 hours", "More than 4 hours", "Constant all day"] },
+      { "question": "Did the headache start suddenly like a thunderclap?", "options": ["Yes, very sudden and severe", "Gradual onset", "Comes and goes"] },
+      { "question": "Any vision changes, weakness, or speech difficulty?", "options": ["Yes", "Mild blurring only", "No"] }
     ],
     "advice": "Rest in a dark, quiet room. Drink water. Seek urgent care if headache is sudden, severe, or the worst of your life."
   },
@@ -59,7 +68,10 @@
       { "question": "Where exactly is the pain?", "options": ["Upper abdomen", "Lower abdomen", "Right side", "Left side", "All over"] },
       { "question": "Do you have nausea or vomiting?", "options": ["Yes, both", "Only nausea", "Only vomiting", "No"] },
       { "question": "Do you have diarrhea or loose stools?", "options": ["Yes, frequent", "Occasional", "No"] },
-      { "question": "When did the pain start?", "options": ["After eating", "Before meals", "No relation to food", "Sudden onset"] }
+      { "question": "When did the pain start?", "options": ["After eating", "Before meals", "No relation to food", "Sudden onset"] },
+      { "question": "Do you have fever?", "options": ["Yes, high fever", "Low-grade fever", "No fever"] },
+      { "question": "Did you eat outside food or drink untreated water recently?", "options": ["Yes", "Not sure", "No"] },
+      { "question": "Is the pain constant or does it come in waves?", "options": ["Constant", "Comes and goes", "Sharp cramps"] }
     ],
     "advice": "Stay hydrated with ORS. Avoid solid food initially. See a doctor if pain is severe or blood appears in stools."
   },
@@ -75,7 +87,10 @@
       { "question": "How does the chest pain feel?", "options": ["Crushing/pressure", "Sharp/stabbing", "Burning", "Tight/squeezing"] },
       { "question": "Does the pain spread to arm, jaw, or shoulder?", "options": ["Yes, left arm", "Yes, jaw", "Yes, shoulder", "No"] },
       { "question": "Are you short of breath?", "options": ["Yes, severely", "Mildly", "No"] },
-      { "question": "Do you sweat or feel dizzy along with the pain?", "options": ["Yes", "Only sweating", "Only dizziness", "No"] }
+      { "question": "Do you sweat or feel dizzy along with the pain?", "options": ["Yes", "Only sweating", "Only dizziness", "No"] },
+      { "question": "Did the pain start during rest or physical activity?", "options": ["At rest", "During exertion", "Both", "Not sure"] },
+      { "question": "How long has the pain been present?", "options": ["Just started (minutes)", "Less than 1 hour", "Several hours", "Comes and goes for days"] },
+      { "question": "Do you have diabetes, high BP, or heart disease history?", "options": ["Yes, one or more", "Family history only", "No known history"] }
     ],
     "advice": "Chest pain can be serious. Call emergency services (112) immediately if pain is severe or spreading."
   },
@@ -91,7 +106,10 @@
       { "question": "Where is the back pain located?", "options": ["Lower back", "Upper back", "Middle back", "Entire spine"] },
       { "question": "Did the pain start after lifting or injury?", "options": ["Yes, after lifting", "Yes, after injury", "No clear cause", "After prolonged sitting"] },
       { "question": "Does the pain radiate to legs?", "options": ["Yes, both legs", "Yes, one leg", "No"] },
-      { "question": "How long have you had this pain?", "options": ["Today", "2–7 days", "1–4 weeks", "More than a month"] }
+      { "question": "How long have you had this pain?", "options": ["Today", "2–7 days", "1–4 weeks", "More than a month"] },
+      { "question": "Do you have numbness, tingling, or weakness in legs?", "options": ["Yes", "Mild tingling", "No"] },
+      { "question": "Is the pain worse with bending or movement?", "options": ["Yes, much worse with movement", "Mildly worse", "No change with movement"] },
+      { "question": "Any fever, weight loss, or trauma to the spine?", "options": ["Fever present", "Recent significant trauma", "No fever or trauma"] }
     ],
     "advice": "Rest, apply warm compress. See a physiotherapist. Seek immediate care if you have leg weakness or bladder issues."
   },
@@ -107,7 +125,10 @@
       { "question": "Where is the rash located?", "options": ["Face", "Arms/hands", "Trunk/abdomen", "Legs/feet", "All over body"] },
       { "question": "Is the rash itchy?", "options": ["Very itchy", "Mildly itchy", "Not itchy", "Burning sensation"] },
       { "question": "Did the rash appear after eating something or touching a substance?", "options": ["Yes, after eating", "Yes, after contact", "No known trigger", "After medication"] },
-      { "question": "Is there swelling around the rash or on face/lips?", "options": ["Yes, significant swelling", "Mild redness", "No swelling"] }
+      { "question": "Is there swelling around the rash or on face/lips?", "options": ["Yes, significant swelling", "Mild redness", "No swelling"] },
+      { "question": "Is the rash spreading quickly?", "options": ["Yes, spreading fast", "Slowly spreading", "Staying in one area"] },
+      { "question": "Do you have fever or feel unwell?", "options": ["Yes, with fever", "Feel unwell, no fever", "Feel fine otherwise"] },
+      { "question": "Did you start any new medicine in the last week?", "options": ["Yes", "Not sure", "No"] }
     ],
     "advice": "Avoid known allergens. Antihistamines may help. Seek emergency care if swelling affects face/throat or breathing."
   },
@@ -123,7 +144,10 @@
       { "question": "What symptoms do you have in the eye?", "options": ["Redness", "Discharge/pus", "Burning/itching", "Blurred vision"] },
       { "question": "Is one eye or both eyes affected?", "options": ["Only one eye", "Both eyes"] },
       { "question": "Is there sudden vision loss?", "options": ["Yes, significant", "Slightly blurred", "No"] },
-      { "question": "Did you have contact with someone with eye infection?", "options": ["Yes", "Not sure", "No"] }
+      { "question": "Did you have contact with someone with eye infection?", "options": ["Yes", "Not sure", "No"] },
+      { "question": "How severe is the eye pain?", "options": ["Severe pain", "Mild discomfort", "No pain, only redness"] },
+      { "question": "Is there sensitivity to light?", "options": ["Yes, significant", "Mild", "No"] },
+      { "question": "Do you wear contact lenses?", "options": ["Yes, still wearing", "Yes, but removed", "No"] }
     ],
     "advice": "Do not rub eyes. Keep eyes clean. See an eye doctor if vision is affected or pain is severe."
   },
@@ -139,7 +163,10 @@
       { "question": "Which joint(s) are affected?", "options": ["Knee", "Hip", "Shoulder", "Wrist/ankle", "Multiple joints"] },
       { "question": "Is there swelling or redness in the joint?", "options": ["Yes, both", "Only swelling", "Only redness", "No"] },
       { "question": "Is the pain worse in the morning?", "options": ["Yes, worst in morning", "Throughout the day", "Evening/night", "No pattern"] },
-      { "question": "Did the pain start after an injury?", "options": ["Yes", "No, gradual onset", "After activity/exercise"] }
+      { "question": "Did the pain start after an injury?", "options": ["Yes", "No, gradual onset", "After activity/exercise"] },
+      { "question": "How long does morning stiffness last?", "options": ["Less than 30 minutes", "30–60 minutes", "More than 1 hour", "No stiffness"] },
+      { "question": "Do you have fever along with joint pain?", "options": ["Yes", "No", "Had fever earlier"] },
+      { "question": "Does the joint feel warm to touch?", "options": ["Yes, very warm", "Slightly warm", "Normal temperature"] }
     ],
     "advice": "Rest the joint, apply ice/warm compress. See a doctor for evaluation of arthritis or injury."
   },
@@ -155,7 +182,10 @@
       { "question": "How severe is the breathing difficulty?", "options": ["Cannot breathe properly", "Short of breath at rest", "Short of breath on exertion", "Mild"] },
       { "question": "Do you hear wheezing when you breathe?", "options": ["Yes, clearly", "Mildly", "No"] },
       { "question": "Do you have a history of asthma?", "options": ["Yes", "No", "Not sure"] },
-      { "question": "Did the breathing difficulty start suddenly?", "options": ["Yes, sudden onset", "Gradual worsening", "After exercise", "After exposure to dust/smoke"] }
+      { "question": "Did the breathing difficulty start suddenly?", "options": ["Yes, sudden onset", "Gradual worsening", "After exercise", "After exposure to dust/smoke"] },
+      { "question": "Do you have cough or chest tightness?", "options": ["Yes, both", "Only cough", "Only chest tightness", "Neither"] },
+      { "question": "Any lip or nail bluish discoloration?", "options": ["Yes", "Not sure", "No"] },
+      { "question": "Did you use an inhaler and did it help?", "options": ["Helped well", "Helped slightly", "No inhaler / did not help"] }
     ],
     "advice": "Breathing difficulty is serious. If severe, call 112 immediately. Sit upright and stay calm."
   },
@@ -171,7 +201,10 @@
       { "question": "Are you experiencing excessive thirst?", "options": ["Yes, very thirsty", "Moderately", "No"] },
       { "question": "Do you urinate frequently?", "options": ["Yes, very frequent", "Slightly more than usual", "No"] },
       { "question": "Are you feeling unusually tired or weak?", "options": ["Yes, very tired", "Mild fatigue", "No"] },
-      { "question": "Do you have a known diagnosis of diabetes?", "options": ["Yes, Type 1", "Yes, Type 2", "No", "Not sure"] }
+      { "question": "Do you have a known diagnosis of diabetes?", "options": ["Yes, Type 1", "Yes, Type 2", "No", "Not sure"] },
+      { "question": "Any blurred vision or slow-healing wounds?", "options": ["Yes, vision changes", "Slow wound healing", "Neither"] },
+      { "question": "Have you lost or gained weight without trying?", "options": ["Unexplained weight loss", "Weight gain", "No significant change"] },
+      { "question": "Do you have family history of diabetes?", "options": ["Yes", "Not sure", "No"] }
     ],
     "advice": "Monitor blood sugar levels. Follow prescribed diet. Consult your doctor for medication adjustment."
   },
@@ -187,7 +220,10 @@
       { "question": "What are your current BP readings?", "options": ["High (>140/90)", "Low (<90/60)", "Not sure", "Normal but feeling unwell"] },
       { "question": "Are you on BP medication?", "options": ["Yes, taking regularly", "Yes, but missed doses", "No"] },
       { "question": "Do you have headache or dizziness?", "options": ["Yes, severe", "Mild", "No"] },
-      { "question": "Are you experiencing chest pain or palpitations?", "options": ["Yes", "Palpitations only", "No"] }
+      { "question": "Are you experiencing chest pain or palpitations?", "options": ["Yes", "Palpitations only", "No"] },
+      { "question": "When did you last check your blood pressure?", "options": ["Today", "Within a week", "More than a week ago", "Never checked"] },
+      { "question": "Do you have swelling in feet or ankles?", "options": ["Yes", "Mild", "No"] },
+      { "question": "Any recent high salt intake or high stress?", "options": ["Yes, both", "High salt diet", "High stress", "Neither"] }
     ],
     "advice": "Check BP readings regularly. Take medication as prescribed. See a cardiologist if readings are extreme."
   },
@@ -203,7 +239,10 @@
       { "question": "How old is the child?", "options": ["Less than 3 months", "3–12 months", "1–5 years", "5–12 years"] },
       { "question": "What is the child's temperature?", "options": ["Mild (99–100°F)", "Moderate (100–102°F)", "High (>102°F)"] },
       { "question": "Is the child eating and drinking normally?", "options": ["Yes", "Reduced intake", "Refusing food/water"] },
-      { "question": "Is the child unusually sleepy or irritable?", "options": ["Very sleepy/lethargic", "Irritable/crying", "Normal behavior"] }
+      { "question": "Is the child unusually sleepy or irritable?", "options": ["Very sleepy/lethargic", "Irritable/crying", "Normal behavior"] },
+      { "question": "Does the child have rash, cough, or ear pulling?", "options": ["Rash present", "Cough or cold symptoms", "Pulling at ear", "None of these"] },
+      { "question": "How long has the fever lasted?", "options": ["Less than 24 hours", "1–3 days", "More than 3 days"] },
+      { "question": "Was any fever medicine given recently?", "options": ["Yes, temperature improved", "Yes, no improvement", "No medicine given"] }
     ],
     "advice": "Keep child hydrated. Use fever-reducing medicine as age-appropriate. See a pediatrician if infant under 3 months has fever."
   },
@@ -219,7 +258,10 @@
       { "question": "What symptoms are you experiencing?", "options": ["Painful periods", "Irregular periods", "Heavy bleeding", "Missed period"] },
       { "question": "How severe is the pain?", "options": ["Severe (can't do daily activities)", "Moderate", "Mild", "No pain"] },
       { "question": "Is the pain accompanied by nausea or vomiting?", "options": ["Yes", "Only nausea", "No"] },
-      { "question": "Is there any unusual discharge?", "options": ["Yes, unusual color/odor", "Normal discharge", "None"] }
+      { "question": "Is there any unusual discharge?", "options": ["Yes, unusual color/odor", "Normal discharge", "None"] },
+      { "question": "When was your last menstrual period?", "options": ["Within expected dates", "Delayed", "Missed this cycle", "Not sure"] },
+      { "question": "Could you be pregnant?", "options": ["Possible / not sure", "No", "Already confirmed pregnant"] },
+      { "question": "Do you have fever or foul-smelling discharge?", "options": ["Yes, both", "Only fever", "Only unusual odor", "No"] }
     ],
     "advice": "Use pain relievers as needed. Consult a gynecologist for diagnosis of hormonal or structural issues."
   },
@@ -235,7 +277,10 @@
       { "question": "Which ear is affected?", "options": ["Left ear", "Right ear", "Both ears"] },
       { "question": "Is there any discharge from the ear?", "options": ["Yes, pus/fluid", "Yes, blood", "No"] },
       { "question": "Is there any hearing loss?", "options": ["Yes, significant", "Mild muffling", "No"] },
-      { "question": "Did symptoms start after swimming or water exposure?", "options": ["Yes", "No", "After cold/upper respiratory infection"] }
+      { "question": "Did symptoms start after swimming or water exposure?", "options": ["Yes", "No", "After cold/upper respiratory infection"] },
+      { "question": "How severe is the ear pain?", "options": ["Severe", "Moderate", "Mild"] },
+      { "question": "Do you have fever or sore throat?", "options": ["Fever and throat symptoms", "Only fever", "Neither"] },
+      { "question": "Do you feel dizzy or have balance problems?", "options": ["Yes", "Mild dizziness", "No"] }
     ],
     "advice": "Do not insert anything in the ear. See an ENT specialist for ear pain with discharge or hearing loss."
   },
@@ -251,7 +296,10 @@
       { "question": "Do you have burning or pain while urinating?", "options": ["Yes, severe", "Mild", "No"] },
       { "question": "Is there increased frequency of urination?", "options": ["Yes, very frequent", "Slightly more frequent", "No"] },
       { "question": "Do you see blood in the urine?", "options": ["Yes, clearly red", "Pinkish tinge", "No"] },
-      { "question": "Do you have fever or back/flank pain?", "options": ["Yes, both", "Only fever", "Only back pain", "No"] }
+      { "question": "Do you have fever or back/flank pain?", "options": ["Yes, both", "Only fever", "Only back pain", "No"] },
+      { "question": "Do you have lower abdominal or pelvic pain?", "options": ["Yes", "Mild", "No"] },
+      { "question": "Is urine cloudy or foul-smelling?", "options": ["Yes", "Not sure", "No"] },
+      { "question": "Are you pregnant or had a catheter recently?", "options": ["Pregnant", "Catheter recently", "Neither"] }
     ],
     "advice": "Drink plenty of water. See a doctor for urine test and appropriate antibiotic treatment."
   },
@@ -267,7 +315,10 @@
       { "question": "What are your main symptoms?", "options": ["Excessive worry", "Panic attacks", "Sadness/hopelessness", "Sleep problems"] },
       { "question": "How long have you been experiencing these feelings?", "options": ["A few days", "2–4 weeks", "1–3 months", "More than 3 months"] },
       { "question": "Is it affecting your daily life?", "options": ["Severely impacting work/relationships", "Moderately", "Mildly", "Not much"] },
-      { "question": "Have you had similar episodes before?", "options": ["Yes, multiple times", "Once before", "No, first time"] }
+      { "question": "Have you had similar episodes before?", "options": ["Yes, multiple times", "Once before", "No, first time"] },
+      { "question": "How is your sleep?", "options": ["Difficulty falling asleep", "Waking frequently", "Sleeping too much", "Sleep is fine"] },
+      { "question": "Any recent major stress or life change?", "options": ["Yes, significant stress", "Mild stress", "No obvious trigger"] },
+      { "question": "Do you have thoughts of harming yourself?", "options": ["Yes, need urgent help", "Sometimes, not acting on them", "No such thoughts"] }
     ],
     "advice": "Talk to a trusted person. Practice breathing exercises. Consult a doctor or counselor — seeking help is strength."
   },
@@ -283,7 +334,10 @@
       { "question": "How many times have you vomited in the last 24 hours?", "options": ["Once or twice", "3–5 times", "More than 5 times", "Not vomited, only nausea"] },
       { "question": "Is there blood in the vomit?", "options": ["Yes, clearly blood", "Coffee-ground color", "No"] },
       { "question": "Do you have abdominal pain along with vomiting?", "options": ["Yes, severe", "Mild cramping", "No"] },
-      { "question": "Can you keep fluids down?", "options": ["No, vomiting immediately", "With difficulty", "Yes, mostly"] }
+      { "question": "Can you keep fluids down?", "options": ["No, vomiting immediately", "With difficulty", "Yes, mostly"] },
+      { "question": "Do you have diarrhea or fever?", "options": ["Both diarrhea and fever", "Only diarrhea", "Only fever", "Neither"] },
+      { "question": "Could you be pregnant?", "options": ["Possible / not sure", "No", "Yes, confirmed"] },
+      { "question": "Did vomiting start after food poisoning or travel?", "options": ["After suspicious food", "After travel", "No clear trigger"] }
     ],
     "advice": "Stay hydrated with small sips of ORS. Avoid solid food temporarily. See a doctor if vomiting persists or blood is present."
   },
@@ -299,7 +353,10 @@
       { "question": "How long have you been feeling weak?", "options": ["Today", "2–7 days", "2–4 weeks", "More than a month"] },
       { "question": "Is the weakness accompanied by fever?", "options": ["Yes", "No", "Had fever that resolved"] },
       { "question": "Are you eating and drinking normally?", "options": ["Yes", "Reduced appetite", "Unable to eat"] },
-      { "question": "Any recent illness or heavy physical work?", "options": ["Yes, recent illness", "Yes, overworked", "No obvious cause"] }
+      { "question": "Any recent illness or heavy physical work?", "options": ["Yes, recent illness", "Yes, overworked", "No obvious cause"] },
+      { "question": "Do you feel dizzy or lightheaded when standing?", "options": ["Yes, frequently", "Sometimes", "No"] },
+      { "question": "Any unexplained weight loss or night sweats?", "options": ["Weight loss", "Night sweats", "Both", "Neither"] },
+      { "question": "How is your sleep quality?", "options": ["Poor sleep", "Adequate sleep", "Sleeping too much"] }
     ],
     "advice": "Rest, eat balanced meals, stay hydrated. See a doctor if weakness is sudden, severe, or accompanied by other serious symptoms."
   },
@@ -315,7 +372,10 @@
       { "question": "How many loose stools in the last 24 hours?", "options": ["2–4 times", "5–8 times", "More than 8 times"] },
       { "question": "Is there blood or mucus in the stool?", "options": ["Yes, blood", "Yes, mucus", "No"] },
       { "question": "Do you have stomach cramps?", "options": ["Yes, severe", "Mild", "No"] },
-      { "question": "Are you able to drink fluids?", "options": ["Yes, drinking well", "Limited", "No, can't keep anything down"] }
+      { "question": "Are you able to drink fluids?", "options": ["Yes, drinking well", "Limited", "No, can't keep anything down"] },
+      { "question": "Do you have fever or vomiting?", "options": ["Both fever and vomiting", "Only fever", "Only vomiting", "Neither"] },
+      { "question": "Did you take antibiotics in the last 2 weeks?", "options": ["Yes", "Not sure", "No"] },
+      { "question": "Any recent travel or outside food?", "options": ["Recent travel", "Ate outside food", "Neither"] }
     ],
     "advice": "Use ORS to prevent dehydration. Eat plain foods (rice, banana). See a doctor if blood in stool, high fever, or severe dehydration."
   }

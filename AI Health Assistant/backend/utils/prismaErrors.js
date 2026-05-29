@@ -36,5 +36,12 @@ export function mapPrismaError(err) {
       'DATABASE_NOT_CONFIGURED',
     )
   }
+  if (err?.code === 'P2024') {
+    return new ApiError(
+      503,
+      'Database connection pool timed out. Restart the backend server and try again.',
+      'DATABASE_POOL_TIMEOUT',
+    )
+  }
   return err
 }

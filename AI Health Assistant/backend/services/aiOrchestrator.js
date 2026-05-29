@@ -54,6 +54,8 @@ export const analyzeSymptoms = async (symptoms) => {
     return {
       ...emergency,
       riskLevel: normalizeRisk(emergency.riskLevel),
+      matchedKeyword: emergency.matchedKeyword,
+      recommendedSpecializations: emergency.recommendedSpecializations,
       source: 'emergency',
     }
   }

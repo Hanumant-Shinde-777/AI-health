@@ -5,6 +5,7 @@ import AiQuestionsPage from '@/pages/patient/AiQuestionsPage'
 import CreatePrescriptionPage from '@/pages/doctor/CreatePrescriptionPage'
 import DoctorCalendarPage from '@/pages/doctor/DoctorCalendarPage'
 import DoctorConsultationPage from '@/pages/doctor/DoctorConsultationPage'
+import DoctorEmergencyDetailPage from '@/pages/doctor/DoctorEmergencyDetailPage'
 import DoctorDashboardPage from '@/pages/doctor/DoctorDashboardPage'
 import DoctorPatientsPage from '@/pages/doctor/DoctorPatientsPage'
 import DoctorProfilePage from '@/pages/doctor/DoctorProfilePage'
@@ -188,6 +189,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute role="DOCTOR">
         <DoctorConsultationPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/doctor-emergency/:id',
+    element: (
+      <ProtectedRoute role="DOCTOR">
+        <DoctorEmergencyDetailPage />
       </ProtectedRoute>
     ),
   },

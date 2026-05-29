@@ -21,16 +21,21 @@ export async function createAndSendOtp({ phone, purpose, role = null, email = nu
   if (!normalized) throw new ApiError(400, 'Invalid phone number', 'VALIDATION')
 
   const otp = generateOTP()
-  await invalidateOtpsForPhone(normalized)
-  await prisma.oTP.create({
-    data: {
-      phone: normalized,
-      otp,
-      purpose,
-      role,
-      expiresAt: otpExpiry(),
-    },
-  })
+  await prisma.$transaction([
+    prisma.oTP.updateMany({
+      where: { phone: normalized, isUsed: false },
+      data: { isUsed: true },
+    }),
+    prisma.oTP.create({
+      data: {
+        phone: normalized,
+        otp,
+        purpose,
+        role,
+        expiresAt: otpExpiry(),
+      },
+    }),
+  ])
   await sendOTP({ phone: normalized, email, otp, channel: email ? 'email' : 'sms' })
   return { phone: normalized, otp: env.DEV_LOG_OTP ? otp : undefined }
 }

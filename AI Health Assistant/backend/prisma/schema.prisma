@@ -31,6 +31,7 @@ model Patient {
   isVerified       Boolean        @default(false)
   consultations    Consultation[]
   prescriptions    Prescription[]
+  emergencyAlerts  EmergencyAlert[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 }
@@ -56,8 +57,27 @@ model Doctor {
   isVerified        Boolean        @default(false)
   consultations     Consultation[]
   prescriptions     Prescription[]
+  emergencyAlerts   EmergencyAlert[]
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
+}
+
+model EmergencyAlert {
+  id              String   @id @default(uuid())
+  patient         Patient  @relation(fields: [patientId], references: [id])
+  patientId       String
+  doctor          Doctor   @relation(fields: [doctorId], references: [id])
+  doctorId        String
+  detectedSymptom String
+  matchedKeyword  String?
+  symptomText     String
+  status          String   @default("active")
+  servicesAlerted Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([doctorId, status])
+  @@index([patientId, createdAt])
 }
 
 model Consultation {

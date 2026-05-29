@@ -24,6 +24,7 @@ interface ConsultationState {
   isEmergency: boolean
   aiAdvice: string
   emergencyMessage: string
+  emergencyMatchedKeyword: string
 }
 
 const initialState: ConsultationState = {
@@ -47,6 +48,7 @@ const initialState: ConsultationState = {
   isEmergency: false,
   aiAdvice: '',
   emergencyMessage: '',
+  emergencyMatchedKeyword: '',
 }
 
 const consultationSlice = createSlice({
@@ -104,6 +106,7 @@ const consultationSlice = createSlice({
         questions?: AiQuestion[]
         aiAdvice?: string
         emergencyMessage?: string
+        matchedKeyword?: string
       }>,
     ) => {
       const p = action.payload
@@ -117,6 +120,7 @@ const consultationSlice = createSlice({
       if (p.questions != null) state.aiQuestions = p.questions
       if (p.aiAdvice != null) state.aiAdvice = p.aiAdvice
       if (p.emergencyMessage != null) state.emergencyMessage = p.emergencyMessage
+      if (p.matchedKeyword != null) state.emergencyMatchedKeyword = p.matchedKeyword
       // Reset dynamic answers when new analysis comes in
       state.dynamicAnswers = []
     },
