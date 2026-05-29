@@ -186,6 +186,7 @@ export const RoleSelectionPage = () => {
           <button
             type="button"
             onClick={() => {
+              dispatch(logout())
               setUserRole('patient')
               dispatch(setRole('PATIENT'))
               navigate('/login')
@@ -205,6 +206,7 @@ export const RoleSelectionPage = () => {
           <button
             type="button"
             onClick={() => {
+              dispatch(logout())
               setUserRole('doctor')
               dispatch(setRole('DOCTOR'))
               navigate('/login')

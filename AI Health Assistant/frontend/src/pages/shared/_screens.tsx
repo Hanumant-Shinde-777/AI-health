@@ -7,6 +7,7 @@ import {
   type ChangeEvent,
   type ReactNode,
 } from 'react'
+import axios from 'axios'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   AlertTriangle,
@@ -14,6 +15,7 @@ import {
   ArrowLeft,
   Bell,
   Calendar,
+  Check,
   CheckCircle,
   ChevronRight,
   ClipboardList,
@@ -56,7 +58,13 @@ import { analyzeSymptoms, fetchNextQuestion, runFinalAnalysis } from '@/services
 import {
   assignEmergencyDoctor,
   getEmergencyRecommendedDoctors,
+  getPatientLatestEmergency,
+  mapEmergencyTileState,
+  readCachedPatientLatestEmergency,
+  type EmergencyAlert,
+  type PatientEmergencyTileState,
 } from '@/services/emergencyService'
+import { tokenRoleFromJwt } from '@/utils/jwt'
 import {
   approvePrescription,
   createPrescription,
@@ -767,10 +775,16 @@ export const MedicalHistoryPage = () => {
   )
 }
 
+const formatDoctorDisplayName = (name: string | null | undefined): string => {
+  const trimmed = name?.trim()
+  if (!trimmed) return ''
+  return /^dr\.?\s/i.test(trimmed) ? trimmed : `Dr. ${trimmed}`
+}
+
 export const HomePage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const profile = useAppSelector((state) => state.patient.profile)
 
   useEffect(() => {
@@ -784,16 +798,65 @@ export const HomePage = () => {
     { icon: FileText, label: t('home.prescriptions'), to: '/history' },
     { icon: Search, label: t('home.findDoctor') },
     { icon: Heart, label: t('home.healthTips') },
-    { icon: AlertTriangle, label: t('home.emergency') },
     { icon: Headphones, label: t('home.support') },
   ]
 
   const firstName = profile?.fullName?.split(' ')[0] ?? 'User'
   const [notificationCount, setNotificationCount] = useState(0)
+  const [latestEmergency, setLatestEmergency] = useState<EmergencyAlert | null>(null)
+  const emergencyTileState: PatientEmergencyTileState = mapEmergencyTileState(latestEmergency)
+  const { showToast } = useToast()
+
+  const loadEmergencyTile = useCallback(async () => {
+    if (user?.role !== 'PATIENT' || !user?.id) return
+
+    const jwtRole = tokenRoleFromJwt(token)
+    if (jwtRole && jwtRole !== 'PATIENT') {
+      setLatestEmergency(null)
+      return
+    }
+
+    const cached = readCachedPatientLatestEmergency()
+    if (cached) {
+      setLatestEmergency(cached)
+    }
+
+    try {
+      const data = await getPatientLatestEmergency()
+      setLatestEmergency(data)
+    } catch {
+      if (!cached) {
+        setLatestEmergency(null)
+      }
+    }
+  }, [user?.id, user?.role, token])
 
   useEffect(() => {
     setNotificationCount(getUnreadCount('PATIENT'))
   }, [])
+
+  useEffect(() => {
+    void loadEmergencyTile()
+  }, [loadEmergencyTile])
+
+  useEffect(() => {
+    const refresh = () => void loadEmergencyTile()
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refresh()
+      }
+    }
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [loadEmergencyTile])
+
+  const openEmergencySupport = () => {
+    showToast(t('home.emergencyAlert'))
+  }
 
   return (
     <Layout>
@@ -850,13 +913,7 @@ export const HomePage = () => {
                 <button
                   key={item.label}
                   type="button"
-                  onClick={() =>
-                    item.to
-                      ? navigate(item.to)
-                      : item.label === t('home.emergency')
-                        ? window.alert(t('home.emergencyAlert'))
-                        : window.alert(item.label)
-                  }
+                  onClick={() => (item.to ? navigate(item.to) : window.alert(item.label))}
                   className="card flex min-h-[100px] flex-col items-start justify-between p-4 text-left transition-all duration-200 hover:shadow-card-hover active:scale-[0.98]"
                 >
                   <div className="rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 text-primary">
@@ -866,6 +923,54 @@ export const HomePage = () => {
                 </button>
               )
             })}
+
+            <button
+              type="button"
+              onClick={openEmergencySupport}
+              className={classNames(
+                'flex min-h-[100px] flex-col items-start justify-between p-4 text-left transition-all duration-200 hover:shadow-card-hover active:scale-[0.98]',
+                emergencyTileState === 'none' && 'card',
+                emergencyTileState === 'pending' &&
+                  'rounded-2xl border-[1.5px] border-danger bg-[#fff5f5] shadow-card',
+                emergencyTileState === 'reviewed' &&
+                  'rounded-2xl border-[1.5px] border-success bg-success/5 shadow-card',
+              )}
+            >
+              {emergencyTileState === 'reviewed' ? (
+                <div className="rounded-xl bg-success/15 p-2.5 text-success">
+                  <Check size={22} strokeWidth={2.5} />
+                </div>
+              ) : (
+                <div
+                  className={classNames(
+                    'rounded-xl p-2.5',
+                    emergencyTileState === 'pending'
+                      ? 'bg-danger/15 text-danger'
+                      : 'bg-gradient-to-br from-primary/15 to-primary/5 text-primary',
+                  )}
+                >
+                  <AlertTriangle size={22} />
+                </div>
+              )}
+              <div className="w-full space-y-1.5">
+                <span className="text-sm font-semibold text-foreground">{t('home.emergency')}</span>
+                {emergencyTileState === 'pending' ? (
+                  <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                    {t('home.emergencyAwaiting')}
+                  </span>
+                ) : null}
+                {emergencyTileState === 'reviewed' ? (
+                  <>
+                    <p className="text-xs font-bold text-foreground">
+                      {formatDoctorDisplayName(latestEmergency?.doctorName)}
+                    </p>
+                    <span className="inline-flex rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">
+                      {t('home.emergencyReviewed')}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -1146,7 +1251,6 @@ export const AiQuestionsPage = () => {
   const isEmergency = useAppSelector((state) => state.consultation.isEmergency)
   const emergencyMessage = useAppSelector((state) => state.consultation.emergencyMessage)
   const emergencyMatchedKeyword = useAppSelector((state) => state.consultation.emergencyMatchedKeyword)
-  const [emergencyStep, setEmergencyStep] = useState<'alert' | 'doctors'>('alert')
   const [emergencyDoctors, setEmergencyDoctors] = useState<MatchedDoctor[]>([])
   const [loadingEmergencyDoctors, setLoadingEmergencyDoctors] = useState(false)
   const [assigningDoctorId, setAssigningDoctorId] = useState<string | null>(null)
@@ -1200,13 +1304,13 @@ export const AiQuestionsPage = () => {
   }, [showTemperature, hasDynamic, currentIdx])
 
   useEffect(() => {
-    if (!isEmergency || emergencyStep !== 'doctors' || !symptoms) return
+    if (!isEmergency || !symptoms) return
     setLoadingEmergencyDoctors(true)
     getEmergencyRecommendedDoctors(symptoms)
       .then((payload) => setEmergencyDoctors(payload.doctors))
       .catch(() => setEmergencyDoctors([]))
       .finally(() => setLoadingEmergencyDoctors(false))
-  }, [isEmergency, emergencyStep, symptoms])
+  }, [isEmergency, symptoms])
 
   const buildHistory = (answersByIndex: string[]) =>
     aiQuestions
@@ -1324,51 +1428,51 @@ export const AiQuestionsPage = () => {
         })
         setAssignedDoctorIds((ids) => [...ids, doctor.id])
         showToast(t('emergencyAlert.doctorAdded', { name: doctor.name }))
-      } catch {
-        showToast(t('common.tryAgain') || 'Could not assign doctor. Please try again.')
+      } catch (error: unknown) {
+        const code =
+          error instanceof Error && 'code' in error
+            ? String((error as Error & { code?: string }).code)
+            : undefined
+        const status = axios.isAxiosError(error) ? error.response?.status : undefined
+        if (code === 'PATIENT_SESSION_REQUIRED' || status === 403) {
+          showToast(t('emergencyAlert.assignFailed'))
+          navigate('/auth', { state: { from: '/ai-questions' } })
+          return
+        }
+        showToast(t('common.tryAgain'))
       } finally {
         setAssigningDoctorId(null)
       }
     }
 
-    if (emergencyStep === 'alert') {
-      return (
-        <Layout>
-          <div className="page-padding space-y-6 bg-background">
-            <Header title={t('aiQuestions.title')} onBack={() => navigate('/symptoms')} />
-            <div className="card space-y-3 border-2 border-danger/40 bg-danger/5 p-5">
-              <p className="text-base font-bold text-danger">{t('symptoms.emergencyTitle')}</p>
-              <p className="text-sm text-foreground">
-                {emergencyMessage ||
-                  t('emergencyAlert.body', {
-                    symptom: emergencyMatchedKeyword || symptoms,
-                  })}
-              </p>
-            </div>
-            <button type="button" className="btn-primary" onClick={() => setEmergencyStep('doctors')}>
-              {t('common.ok')}
-            </button>
-          </div>
-        </Layout>
-      )
-    }
-
     return (
       <Layout>
-        <div className="page-padding space-y-5 bg-background pb-8">
-          <Header title={t('emergencyAlert.relevantDoctorsTitle')} onBack={() => setEmergencyStep('alert')} />
-          <p className="text-sm text-muted">{t('emergencyAlert.relevantDoctorsSub')}</p>
-          {loadingEmergencyDoctors ? <LoadingSpinner className="py-8" /> : null}
-          {!loadingEmergencyDoctors && emergencyDoctors.length === 0 ? (
-            <p className="text-sm text-muted">{t('emergencyAlert.noDoctors')}</p>
-          ) : null}
-          <div className="space-y-3">
+        <div className="page-padding flex max-h-[calc(100vh-5rem)] flex-col gap-5 bg-background pb-4">
+          <Header title={t('aiQuestions.title')} onBack={() => navigate('/symptoms')} />
+
+          <div className="card shrink-0 space-y-3 border-2 border-danger/40 bg-danger/5 p-5">
+            <p className="text-base font-bold text-danger">{t('symptoms.emergencyTitle')}</p>
+            <p className="text-sm text-foreground">
+              {emergencyMessage ||
+                t('emergencyAlert.body', {
+                  symptom: emergencyMatchedKeyword || symptoms,
+                })}
+            </p>
+          </div>
+
+          <p className="shrink-0 text-sm text-muted">{t('emergencyAlert.relevantDoctorsSub')}</p>
+
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+            {loadingEmergencyDoctors ? <LoadingSpinner className="py-6" /> : null}
+            {!loadingEmergencyDoctors && emergencyDoctors.length === 0 ? (
+              <p className="text-sm text-muted">{t('emergencyAlert.noDoctors')}</p>
+            ) : null}
             {emergencyDoctors.map((doctor) => {
               const added = assignedDoctorIds.includes(doctor.id)
               return (
                 <div key={doctor.id} className="card flex items-center justify-between gap-3 p-4">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground">{doctor.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-foreground">{doctor.name}</p>
                     <p className="text-sm text-muted">{doctor.specialization}</p>
                     {doctor.hospital ? <p className="text-xs text-muted">{doctor.hospital}</p> : null}
                   </div>
@@ -1376,9 +1480,9 @@ export const AiQuestionsPage = () => {
                     type="button"
                     disabled={added || assigningDoctorId === doctor.id}
                     className={classNames(
-                      'shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold',
+                      'shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors',
                       added
-                        ? 'bg-success/15 text-success'
+                        ? 'cursor-default bg-success/15 text-success'
                         : 'bg-primary text-white active:scale-95',
                     )}
                     onClick={() => void handleAssignDoctor(doctor)}
@@ -1393,8 +1497,9 @@ export const AiQuestionsPage = () => {
               )
             })}
           </div>
-          <button type="button" className="btn-secondary w-full" onClick={() => navigate('/home')}>
-            {t('emergencyAlert.backHome')}
+
+          <button type="button" className="btn-primary shrink-0 w-full" onClick={() => navigate('/home')}>
+            {t('common.ok')}
           </button>
         </div>
       </Layout>
@@ -2721,13 +2826,17 @@ export const PatientPrescriptionPage = () => {
     if (!prescription) {
       return
     }
-    const blob = await downloadPdf(prescription.id)
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `${prescription.id}.pdf`
-    anchor.click()
-    URL.revokeObjectURL(url)
+    try {
+      const blob = await downloadPdf(prescription.id)
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `prescription-${prescription.id.slice(0, 8)}.pdf`
+      anchor.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      showToast(t('common.tryAgain'))
+    }
   }
 
   if (loading) {
@@ -2912,13 +3021,17 @@ export const PdfSharePage = () => {
             type="button"
             className="btn-primary"
             onClick={async () => {
-              const blob = await downloadPdf(prescription.id)
-              const url = URL.createObjectURL(blob)
-              const anchor = document.createElement('a')
-              anchor.href = url
-              anchor.download = `${prescription.id}.pdf`
-              anchor.click()
-              URL.revokeObjectURL(url)
+              try {
+                const blob = await downloadPdf(prescription.id)
+                const url = URL.createObjectURL(blob)
+                const anchor = document.createElement('a')
+                anchor.href = url
+                anchor.download = `prescription-${prescription.id.slice(0, 8)}.pdf`
+                anchor.click()
+                URL.revokeObjectURL(url)
+              } catch {
+                showToast(t('common.tryAgain'))
+              }
             }}
           >
             {t('pdfShare.downloadPdf')}

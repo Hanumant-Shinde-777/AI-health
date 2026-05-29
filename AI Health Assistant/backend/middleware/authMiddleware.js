@@ -4,8 +4,8 @@ import { ApiError } from '../utils/apiError.js'
 
 const normalizeRole = (role) => {
   const r = String(role ?? '').toUpperCase()
-  if (r === 'DOCTOR' || r === 'doctor') return 'doctor'
-  if (r === 'PATIENT' || r === 'patient') return 'patient'
+  if (r === 'DOCTOR') return 'doctor'
+  if (r === 'PATIENT') return 'patient'
   return null
 }
 
@@ -17,22 +17,46 @@ export const authMiddleware = async (req, res, next) => {
     }
 
     const payload = verifyToken(header.slice(7))
-    const role = normalizeRole(payload.role)
-    if (!payload.id || !role) {
+    const userId = payload.id ?? payload.sub
+    if (!userId) {
       throw new ApiError(401, 'Invalid token payload', 'UNAUTHORIZED')
     }
 
-    const user =
-      role === 'doctor'
-        ? await prisma.doctor.findUnique({ where: { id: payload.id } })
-        : await prisma.patient.findUnique({ where: { id: payload.id } })
+    const roleClaim = normalizeRole(payload.role)
 
-    if (!user) {
-      throw new ApiError(401, 'User not found', 'UNAUTHORIZED')
+    if (roleClaim === 'patient') {
+      const patient = await prisma.patient.findUnique({ where: { id: userId } })
+      if (!patient) {
+        throw new ApiError(401, 'User not found', 'UNAUTHORIZED')
+      }
+      req.user = { id: patient.id, role: 'PATIENT' }
+      return next()
     }
 
-    req.user = { id: user.id, role: role === 'doctor' ? 'DOCTOR' : 'PATIENT' }
-    next()
+    if (roleClaim === 'doctor') {
+      const doctor = await prisma.doctor.findUnique({ where: { id: userId } })
+      if (!doctor) {
+        throw new ApiError(401, 'User not found', 'UNAUTHORIZED')
+      }
+      req.user = { id: doctor.id, role: 'DOCTOR' }
+      return next()
+    }
+
+    const [patient, doctor] = await Promise.all([
+      prisma.patient.findUnique({ where: { id: userId } }),
+      prisma.doctor.findUnique({ where: { id: userId } }),
+    ])
+
+    if (patient) {
+      req.user = { id: patient.id, role: 'PATIENT' }
+      return next()
+    }
+    if (doctor) {
+      req.user = { id: doctor.id, role: 'DOCTOR' }
+      return next()
+    }
+
+    throw new ApiError(401, 'User not found', 'UNAUTHORIZED')
   } catch (e) {
     if (e instanceof ApiError) return next(e)
     next(new ApiError(401, 'Invalid or expired token', 'UNAUTHORIZED'))

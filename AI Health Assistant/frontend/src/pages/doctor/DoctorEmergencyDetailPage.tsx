@@ -10,7 +10,8 @@ import {
   respondToEmergency,
   type EmergencyAlert,
 } from '@/services/emergencyService'
-import { formatCaseRelativeTime, formatDate } from '@/utils'
+import { formatDate } from '@/utils'
+import { formatCaseRelativeTime } from '@/utils/doctorDashboard'
 
 const DoctorEmergencyDetailPage = () => {
   const { t } = useTranslation()
@@ -100,12 +101,14 @@ const DoctorEmergencyDetailPage = () => {
             </p>
             <p>
               <span className="font-semibold text-foreground">{t('emergencyAlert.caseStatus')}:</span>{' '}
-              {alert.status === 'acknowledged' ? t('emergencyAlert.statusAcknowledged') : t('emergencyAlert.statusActive')}
+              {alert.status === 'reviewed' || alert.status === 'acknowledged'
+                ? t('emergencyAlert.statusAcknowledged')
+                : t('emergencyAlert.statusActive')}
             </p>
           </div>
         </div>
 
-        {alert.status === 'active' ? (
+        {alert.status === 'pending' || alert.status === 'active' ? (
           <button
             type="button"
             className="btn-primary w-full bg-danger hover:bg-danger/90"

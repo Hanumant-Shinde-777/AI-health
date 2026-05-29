@@ -334,7 +334,9 @@
     "findDoctor": "Find Doctor",
     "healthTips": "Health Tips",
     "emergency": "Emergency Support",
-    "emergencyAlert": "Emergency support will be connected soon.",
+    "emergencyAlert": "Emergency support will be connect soon.",
+    "emergencyAwaiting": "⏳ Awaiting doctor",
+    "emergencyReviewed": "✓ Reviewed",
     "support": "Support",
     "tapToSpeak": "Tap to Speak"
   },
@@ -355,8 +357,9 @@
     "relevantDoctorsSub": "These specialists match your emergency symptoms. Tap + Add Doctor to alert them.",
     "noDoctors": "No matching doctors available right now. Please call 112/108 immediately.",
     "addDoctor": "+ Add Doctor",
-    "added": "Added",
+    "added": "✓ Added",
     "doctorAdded": "{{name}} has been notified of your emergency.",
+    "assignFailed": "Could not alert this doctor. Please log in as a patient and try again.",
     "backHome": "Back to home",
     "activeTitle": "{{count}} patients need immediate attention",
     "activeSubtitle": "AI-detected critical symptoms",
@@ -786,6 +789,7 @@
     "or": "or",
     "unknown": "Unknown",
     "none": "—",
-    "loadError": "Failed to load data. Please try again."
+    "loadError": "Failed to load data. Please try again.",
+    "tryAgain": "Something went wrong. Please try again."
   }
 }

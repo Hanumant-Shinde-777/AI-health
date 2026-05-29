@@ -71,7 +71,8 @@ model EmergencyAlert {
   detectedSymptom String
   matchedKeyword  String?
   symptomText     String
-  status          String   @default("active")
+  status          String   @default("pending")
+  reviewedAt      DateTime?
   servicesAlerted Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

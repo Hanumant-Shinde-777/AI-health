@@ -1,5 +1,7 @@
 import client from '@/services/apiClient'
 import type { MatchedDoctor } from '@/types/doctors'
+import { readStorage, removeStorage, storageKeys, writeStorage } from '@/utils'
+import { tokenRoleFromJwt } from '@/utils/jwt'
 
 export interface EmergencyDoctorListItem {
   id: string
@@ -23,10 +25,32 @@ export interface EmergencyAlert {
   detectedSymptom: string
   matchedKeyword: string | null
   symptomText: string
-  status: string
+  status: 'pending' | 'reviewed' | string
+  reviewedAt: string | null
   servicesAlerted: boolean
   createdAt: string
 }
+
+export type PatientEmergencyTileState = 'none' | 'pending' | 'reviewed'
+
+export const mapEmergencyTileState = (alert: EmergencyAlert | null): PatientEmergencyTileState => {
+  if (!alert) return 'none'
+  if (alert.status === 'reviewed' || alert.status === 'acknowledged') return 'reviewed'
+  if (alert.status === 'pending' || alert.status === 'active') return 'pending'
+  return 'none'
+}
+
+export const cachePatientLatestEmergency = (alert: EmergencyAlert | null): void => {
+  if (typeof window === 'undefined') return
+  if (!alert) {
+    removeStorage(storageKeys.patientLatestEmergency)
+    return
+  }
+  writeStorage(storageKeys.patientLatestEmergency, alert)
+}
+
+export const readCachedPatientLatestEmergency = (): EmergencyAlert | null =>
+  readStorage<EmergencyAlert | null>(storageKeys.patientLatestEmergency, null)
 
 const mapDoctor = (d: EmergencyDoctorListItem): MatchedDoctor => ({
   id: d.id,
@@ -63,8 +87,27 @@ export const assignEmergencyDoctor = async (data: {
   matchedKeyword?: string
   symptomText?: string
 }) => {
+  const token = typeof window !== 'undefined' ? window.localStorage.getItem(storageKeys.token) : null
+  const jwtRole = tokenRoleFromJwt(token)
+  if (jwtRole !== 'PATIENT') {
+    const error = new Error('PATIENT_SESSION_REQUIRED') as Error & { code?: string }
+    error.code = 'PATIENT_SESSION_REQUIRED'
+    throw error
+  }
+
   const response = await client.post<{ success: boolean; data: EmergencyAlert }>('/emergency', data)
-  return response.data.data
+  const alert = response.data.data
+  cachePatientLatestEmergency(alert)
+  return alert
+}
+
+export const getPatientLatestEmergency = async () => {
+  const response = await client.get<{ success: boolean; data: EmergencyAlert | null }>(
+    '/emergency/patient/latest',
+  )
+  const data = response.data.data
+  cachePatientLatestEmergency(data)
+  return data
 }
 
 export const getDoctorActiveEmergencies = async () => {

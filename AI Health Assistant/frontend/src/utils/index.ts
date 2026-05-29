@@ -48,6 +48,7 @@ export const storageKeys = {
   /** Doctor completed account OTP; practice info still required */
   doctorPendingPractice: 'ai-health-doctor-pending-practice',
   patientPendingRegistration: 'ai-health-patient-pending-registration',
+  patientLatestEmergency: 'ai-health-patient-latest-emergency',
   /** Patient account created; awaiting registration OTP on /otp */
   patientAwaitingOtp: 'ai-health-patient-awaiting-otp',
 } as const
@@ -331,6 +332,7 @@ export const clearPatientSessionCache = (): void => {
   removeStorage(storageKeys.profile)
   removeStorage(storageKeys.medicalHistory)
   removeStorage(storageKeys.patientExtendedProfile)
+  removeStorage(storageKeys.patientLatestEmergency)
 }
 
 export interface PatientExtendedProfile {

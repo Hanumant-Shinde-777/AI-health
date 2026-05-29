@@ -18,7 +18,7 @@ const initialRole =
 const initialState: AuthState = {
   user: initialUser,
   token: initialToken,
-  isAuthenticated: Boolean(initialToken),
+  isAuthenticated: Boolean(initialToken && initialUser),
   role: initialUser?.role ?? initialRole ?? null,
 }
 

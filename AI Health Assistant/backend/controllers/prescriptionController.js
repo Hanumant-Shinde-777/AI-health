@@ -1,5 +1,6 @@
 import prisma from '../config/prismaClient.js'
 import { ApiError } from '../utils/apiError.js'
+import { buildPrescriptionPdfBuffer } from '../services/prescriptionPdfService.js'
 
 const canAccess = (prescription, user) => {
   if (user.role === 'PATIENT' && prescription.patientId === user.id) return true
@@ -77,4 +78,24 @@ export const getByConsultation = async (req, res) => {
     throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
   }
   res.json({ success: true, data: prescription })
+}
+
+/** GET /api/prescriptions/:id/pdf — download prescription PDF */
+export const downloadPdf = async (req, res) => {
+  const prescription = await prisma.prescription.findUnique({
+    where: { id: req.params.id },
+    include: { doctor: true, patient: true },
+  })
+  if (!prescription) {
+    throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
+  }
+  if (!canAccess(prescription, req.user)) {
+    throw new ApiError(403, 'Forbidden', 'FORBIDDEN')
+  }
+
+  const buffer = await buildPrescriptionPdfBuffer(prescription)
+  const filename = `prescription-${prescription.id.slice(0, 8)}.pdf`
+  res.setHeader('Content-Type', 'application/pdf')
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+  res.send(buffer)
 }

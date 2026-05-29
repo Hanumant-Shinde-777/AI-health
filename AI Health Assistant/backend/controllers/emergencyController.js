@@ -2,6 +2,12 @@ import prisma from '../config/prismaClient.js'
 import { ApiError } from '../utils/apiError.js'
 import { detectEmergency, getRecommendedSpecializations } from '../services/emergencyService.js'
 
+const normalizeStatus = (status) => {
+  if (status === 'active') return 'pending'
+  if (status === 'acknowledged') return 'reviewed'
+  return status
+}
+
 const mapAlert = (row) => ({
   id: row.id,
   patientId: row.patientId,
@@ -13,7 +19,8 @@ const mapAlert = (row) => ({
   detectedSymptom: row.detectedSymptom,
   matchedKeyword: row.matchedKeyword,
   symptomText: row.symptomText,
-  status: row.status,
+  status: normalizeStatus(row.status),
+  reviewedAt: row.reviewedAt?.toISOString() ?? null,
   servicesAlerted: row.servicesAlerted,
   createdAt: row.createdAt.toISOString(),
 })
@@ -65,14 +72,13 @@ export const createEmergencyAlert = async (req, res) => {
     throw new ApiError(400, 'doctorId and detectedSymptom are required', 'VALIDATION')
   }
 
+  if (req.user.role !== 'PATIENT') {
+    throw new ApiError(403, 'Please log in as a patient to alert doctors', 'PATIENT_REQUIRED')
+  }
+
   const doctor = await prisma.doctor.findUnique({ where: { id: doctorId } })
   if (!doctor?.isVerified) {
     throw new ApiError(400, 'Doctor not found', 'NOT_FOUND')
-  }
-
-  const patient = await prisma.patient.findUnique({ where: { id: req.user.id } })
-  if (!patient) {
-    throw new ApiError(404, 'Patient not found', 'NOT_FOUND')
   }
 
   const row = await prisma.emergencyAlert.create({
@@ -82,7 +88,7 @@ export const createEmergencyAlert = async (req, res) => {
       detectedSymptom: String(detectedSymptom),
       matchedKeyword: matchedKeyword ? String(matchedKeyword) : null,
       symptomText: symptomText ? String(symptomText) : String(detectedSymptom),
-      status: 'active',
+      status: 'pending',
       servicesAlerted: true,
     },
     include: { patient: true, doctor: true },
@@ -91,10 +97,28 @@ export const createEmergencyAlert = async (req, res) => {
   res.status(201).json({ success: true, data: mapAlert(row) })
 }
 
+/** GET /api/emergency/patient/latest — patient's most recent emergency for home tile */
+export const getPatientLatestEmergency = async (req, res) => {
+  if (req.user.role !== 'PATIENT') {
+    return res.json({ success: true, data: null })
+  }
+
+  const row = await prisma.emergencyAlert.findFirst({
+    where: { patientId: req.user.id },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      patient: { select: { fullName: true, age: true, gender: true } },
+      doctor: { select: { fullName: true, specialization: true } },
+    },
+  })
+
+  res.json({ success: true, data: row ? mapAlert(row) : null })
+}
+
 /** GET /api/emergency/doctor/active — logged-in doctor's active emergencies */
 export const listDoctorActiveEmergencies = async (req, res) => {
   const rows = await prisma.emergencyAlert.findMany({
-    where: { doctorId: req.user.id, status: 'active' },
+    where: { doctorId: req.user.id, status: { in: ['pending', 'active'] } },
     include: {
       patient: { select: { fullName: true, age: true, gender: true } },
       doctor: { select: { fullName: true, specialization: true } },
@@ -135,7 +159,7 @@ export const respondToEmergency = async (req, res) => {
 
   const row = await prisma.emergencyAlert.update({
     where: { id: req.params.id },
-    data: { status: 'acknowledged' },
+    data: { status: 'reviewed', reviewedAt: new Date() },
     include: {
       patient: { select: { fullName: true, age: true, gender: true } },
       doctor: { select: { fullName: true, specialization: true } },

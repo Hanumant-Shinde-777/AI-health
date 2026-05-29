@@ -626,3 +626,226 @@ frontend/
   pages/shared/_screens.tsx    ← SymptomsPage, AiQuestionsPage
   store/slices/consultationSlice.ts
 This is the Hybrid AI Pipeline as it runs today: Emergency → Dataset → (optional Groq continuation) → Groq final, with Groq-only when the dataset does not match.
+
+----------------------------------------------------------------------------------------------
+#29/05/2026
+#SMTP
+LOGIN SCREEN
+│
+├── Option 1: Mobile Number + OTP
+│   └── [SKIP FOR NOW — implement later with SMS/Twilio]
+│
+└── Option 2: Email + Password + OTP  ← ONLY THIS NOW
+    ├── Step 1: User enters email + password
+    ├── Step 2: Backend validates email & password
+    ├── Step 3: IF valid → generate OTP → send via Nodemailer SMTP
+    └── Step 4: User enters OTP → verified → logged in
+
+
+=== FEATURE: EMAIL + PASSWORD + OTP AUTHENTICATION ===
+
+=== OVERVIEW ===
+The app has two login methods:
+  1. Email + Password + OTP  ← BUILD THIS NOW (SMTP active)
+  2. Mobile + OTP            ← SKIP (placeholder only)
+
+Only activate Nodemailer/SMTP when user selects 
+email login method. Mobile path must not trigger 
+any email or OTP logic.
+
+=== STEP 1: SETUP — INSTALL DEPENDENCIES ===
+
+Run in terminal:
+  npm install nodemailer otplib bcryptjs jsonwebtoken dotenv
+
+Add to .env file:
+  SMTP_HOST=smtp.ethereal.email       # local dev
+  SMTP_PORT=587
+  SMTP_USER=                          # auto-filled by Ethereal
+  SMTP_PASS=                          # auto-filled by Ethereal
+  JWT_SECRET=your_jwt_secret_key
+  OTP_EXPIRY_MS=300000                # 5 minutes
+
+=== STEP 2: FOLDER STRUCTURE ===
+
+project/
+├── config/
+│   └── mailer.js          ← Nodemailer transporter
+├── services/
+│   ├── otpService.js      ← generate + verify OTP
+│   └── emailService.js    ← send OTP email
+├── routes/
+│   └── authRoutes.js      ← login + verify endpoints
+├── middleware/
+│   └── authMiddleware.js  ← JWT protect routes
+├── models/
+│   └── User.js            ← user schema
+└── server.js
+
+=== STEP 3: MAILER CONFIG ===
+
+FILE: config/mailer.js
+
+  - Use nodemailer.createTestAccount() for local dev
+  - Creates Ethereal fake SMTP account automatically
+  - Logs preview URL to terminal after each email
+  - Singleton pattern — create transporter once, reuse it
+  - Console log Ethereal user + pass on first creation
+  - In production: swap Ethereal with real SMTP credentials
+    (Gmail App Password / SendGrid) — no other code changes
+
+=== STEP 4: OTP SERVICE ===
+
+FILE: services/otpService.js
+
+  Storage:
+  - Use in-memory Map for local dev
+  - Key: email address
+  - Value: { otp, expiresAt, attempts }
+
+  generateOtp(email):
+  - Generate random 6-digit number
+  - Store in Map with:
+      expiresAt = Date.now() + OTP_EXPIRY_MS
+      attempts  = 0
+  - Console.log OTP in terminal (local dev only)
+  - Return OTP string
+
+  verifyOtp(email, inputOtp):
+  - Check if record exists → else "OTP not found. Resend."
+  - Check if expired → delete record → "OTP expired. Resend."
+  - Check attempts >= 3 → delete record → "Too many attempts."
+  - Check OTP match → if no: increment attempts → "Invalid OTP."
+  - If match → delete record → return success: true
+
+=== STEP 5: EMAIL SERVICE ===
+
+FILE: services/emailService.js
+
+  sendOtpEmail(email, otp, userName):
+  - Call createTransporter() from mailer.js
+  - Send email:
+      from:    "MedApp <no-reply@medapp.local>"
+      to:      user's email
+      subject: "Your OTP Code — MedApp"
+      html:    Styled template showing:
+               · Greeting with userName
+               · OTP in large bold centered block
+               · "Expires in 5 minutes" note
+               · "Do not share this OTP" warning
+  - Console.log preview URL from nodemailer.getTestMessageUrl()
+  - Return preview URL (remove in production)
+
+=== STEP 6: AUTH ROUTES ===
+
+FILE: routes/authRoutes.js
+
+  --- ROUTE 1: POST /api/auth/login ---
+
+  Request body: { loginMethod, email, password }
+
+  Logic:
+  if loginMethod === 'mobile':
+    → return 400: "Mobile login not available yet."
+    → DO NOT trigger any OTP or email logic
+
+  if loginMethod === 'email':
+    1. Validate email + password present
+    2. Find user by email in DB
+       → if not found: 404 "User not found."
+    3. Compare password using bcrypt.compare()
+       → if mismatch: 401 "Invalid password."
+    4. IF password valid:
+       → generateOtp(email)
+       → sendOtpEmail(email, otp, user.name)
+       → return 200: { 
+           success: true, 
+           message: "OTP sent to your email.",
+           previewUrl   ← remove in production
+         }
+
+  --- ROUTE 2: POST /api/auth/verify-otp ---
+
+  Request body: { email, otp }
+
+  Logic:
+  1. Validate email + otp present
+  2. Call verifyOtp(email, otp)
+  3. If failed → return 400 with verifyOtp message
+  4. If success:
+     → Find user by email
+     → Sign JWT:
+         payload: { userId: user._id, email: user.email }
+         secret:  JWT_SECRET from .env
+         expiry:  '7d'
+     → return 200: {
+         success: true,
+         message: "Login successful.",
+         token,
+         user: { id, name, email }
+       }
+
+=== STEP 7: REGISTER ROUTES IN SERVER.JS ===
+
+  app.use('/api/auth', authRoutes);
+
+=== STEP 8: FRONTEND FLOW ===
+
+  Screen 1 — Login screen:
+  - Toggle UI: "Email Login" | "Mobile Login"
+  - Mobile selected → show disabled state or 
+    "Coming soon" message
+  - Email selected → show:
+      · Email input field
+      · Password input field
+      · "Send OTP" button
+
+  Screen 2 — OTP screen (after password verified):
+  - Show: "OTP sent to [email]"
+  - 6-digit OTP input
+  - "Verify OTP" button
+  - "Resend OTP" link (calls /login again)
+  - Countdown timer: 5:00 minutes
+
+  Screen 3 — Dashboard (after OTP verified):
+  - Store JWT token in AsyncStorage / localStorage
+  - Navigate to Home/Dashboard
+
+=== STEP 9: HOW TO TEST LOCALLY ===
+
+  1. Start server: node server.js
+  2. POST /api/auth/login
+       { "loginMethod": "email",
+         "email": "test@test.com",
+         "password": "yourpassword" }
+  3. Terminal shows:
+       OTP for test@test.com: 482910
+       Preview URL: https://ethereal.email/message/XXXXX
+  4. Open preview URL → see OTP email in browser
+  5. POST /api/auth/verify-otp
+       { "email": "test@test.com", "otp": "482910" }
+  6. Response: JWT token → user logged in ✓
+
+=== CONSTRAINTS ===
+
+- Nodemailer/SMTP ONLY triggers on email login method.
+- Mobile login path returns placeholder — no OTP, no email.
+- All other app functionality is completely unchanged.
+- No changes to: patient flow, doctor flow, prescriptions,
+  emergency feature, or any other existing screen/route.
+- OTP is always deleted after: successful verify, expiry,
+  or 3 failed attempts.
+- JWT token is required for all protected routes after login.
+
+=== PRODUCTION UPGRADE (later) ===
+
+  Swap in config/mailer.js only:
+  - host: smtp.gmail.com
+  - auth.user: Gmail address
+  - auth.pass: Gmail App Password
+  Nothing else changes.
+
+  Swap in services/otpService.js only:
+  - Replace Map with Redis client
+  Nothing else changes.
+
