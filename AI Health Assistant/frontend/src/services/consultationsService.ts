@@ -14,6 +14,7 @@ import {
   generateId,
   getMockConsultations,
   getMockAiQuestions,
+  isLocalMockId,
   readStorage,
   saveMockConsultations,
   storageKeys,
@@ -130,6 +131,15 @@ export const getConsultations = async (): Promise<Consultation[]> => {
 }
 
 export const getConsultation = async (id: string): Promise<Consultation> => {
+  if (isLocalMockId(id)) {
+    await delay()
+    const consultation = getMockConsultations().find((item) => item.id === id)
+    if (!consultation) {
+      throw new Error('Consultation not found')
+    }
+    return consultation
+  }
+
   try {
     const response = await client.get<Consultation>(`/consultations/${id}`)
     return response.data

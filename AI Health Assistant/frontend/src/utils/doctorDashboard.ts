@@ -30,8 +30,23 @@ export const isReviewedCase = (item: Consultation): boolean => {
   return item.status === 'REVIEWED' || item.status === 'CLOSED'
 }
 
-export const isTodayCase = (item: Consultation): boolean =>
-  new Date(item.createdAt).toDateString() === new Date().toDateString()
+const isSameCalendarDay = (value?: string | null): boolean => {
+  if (!value) return false
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return false
+  return date.toDateString() === new Date().toDateString()
+}
+
+/** Case counts for "Today" if submitted today or the doctor acted on it today. */
+export const isTodayCase = (item: Consultation): boolean => {
+  if (isSameCalendarDay(item.createdAt)) return true
+  if (isSameCalendarDay(item.reviewedAt)) return true
+
+  const updatedAt = (item as Consultation & { updatedAt?: string }).updatedAt
+  if (isSameCalendarDay(updatedAt)) return true
+
+  return (item.statusTimeline ?? []).some((entry) => isSameCalendarDay(entry.at))
+}
 
 export const computeDoctorDashboardStats = (cases: Consultation[]): DoctorDashboardStats => {
   const pending = cases.filter(isPendingCase).length

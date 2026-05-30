@@ -102,8 +102,14 @@ export const listDoctors = async (req, res) => {
   const { specialization } = req.query
   const where = {
     isVerified: true,
-    availability: true,
-    ...(specialization ? { specialization: String(specialization) } : {}),
+    ...(specialization
+      ? {
+          specialization: {
+            contains: String(specialization).split('/')[0].trim().split(' ')[0],
+            mode: 'insensitive',
+          },
+        }
+      : {}),
   }
 
   const doctors = await prisma.doctor.findMany({

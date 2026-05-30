@@ -150,10 +150,10 @@ import {
 } from '@/utils'
 import type { DoctorProfileRecord, PatientExtendedProfile } from '@/utils'
 import {
+  getSpecFromSymptom,
   getSymptomTagsForDisplay,
-  recommendSpecialization,
 } from '@/utils/doctors'
-import { getDoctorsBySpecialization } from '@/services/doctorsService'
+import { resolveDoctorsForSymptom, type DoctorMatchResult } from '@/services/doctorsService'
 import { getUnreadCount, notifyPatientNeedMoreInfo } from '@/utils/notifications'
 import type { MatchedDoctor } from '@/types/doctors'
 
@@ -854,9 +854,16 @@ export const HomePage = () => {
     }
   }, [loadEmergencyTile])
 
-  const openEmergencySupport = () => {
+  const emergencyPressGuard = useRef(false)
+
+  const openEmergencySupport = useCallback(() => {
+    if (emergencyPressGuard.current) return
+    emergencyPressGuard.current = true
     showToast(t('home.emergencyAlert'))
-  }
+    window.setTimeout(() => {
+      emergencyPressGuard.current = false
+    }, 1000)
+  }, [showToast, t])
 
   return (
     <Layout>
@@ -1886,12 +1893,20 @@ export const AdditionalNotesPage = () => {
 export const SummaryPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const dispatch = useAppDispatch()
   const consultation = useAppSelector((state) => state.consultation)
   const profile = useAppSelector((state) => state.patient.profile)
   const [loading, setLoading] = useState(false)
   const [selectedDoctor, setSelectedDoctor] = useState<MatchedDoctor | null>(null)
   const [showSelectHint, setShowSelectHint] = useState(false)
+
+  const historyState = location.state as {
+    historyCompactView?: boolean
+    historyConsultation?: Consultation
+  } | null
+  const isHistoryCompactView = Boolean(historyState?.historyCompactView)
+  const historyConsultation = historyState?.historyConsultation
   const {
     symptomData,
     currentSymptoms,
@@ -1899,7 +1914,6 @@ export const SummaryPage = () => {
     additionalNotes,
     disease,
     confidence,
-    aiSpecialization,
     aiQuestions,
     dynamicAnswers,
     aiAnswers,
@@ -1939,40 +1953,52 @@ export const SummaryPage = () => {
     return lines.length ? lines : symptomsText.split(/[.,\n]/).map((item) => item.trim()).filter(Boolean)
   }, [additionalNotes, aiAnswers, aiQuestions, dynamicAnswers, symptomData, symptomsText, t])
 
-  const [doctors, setDoctors] = useState<MatchedDoctor[]>([])
+  const [doctorMatch, setDoctorMatch] = useState<DoctorMatchResult | null>(null)
   const [doctorsLoading, setDoctorsLoading] = useState(false)
   const [doctorsError, setDoctorsError] = useState(false)
-  const [usedFallback, setUsedFallback] = useState(false)
-  const [effectiveSpecialization, setEffectiveSpecialization] = useState('')
 
   const flowRisk = useMemo(() => computeRiskFromSymptomData(symptomData), [symptomData])
   const riskLevel = consultation.riskLevel ?? flowRisk
-  const patientAge = profile?.age ?? 0
-  const recommendedSpecialization = useMemo(
-    () => recommendSpecialization(symptomsText, symptomData, patientAge),
-    [symptomsText, symptomData, patientAge],
-  )
+  const recommendedSpec = useMemo(() => getSpecFromSymptom(symptomsText), [symptomsText])
+  const displaySpec = doctorMatch?.displaySpec ?? recommendedSpec
+  const hasDoctors = (doctorMatch?.doctors.length ?? 0) > 0
+  const usedFallback = doctorMatch?.usedFallback ?? false
   const symptomTags = useMemo(
     () => getSymptomTagsForDisplay(symptomsText, symptomData),
     [symptomsText, symptomData],
   )
 
-  useEffect(() => {
-    if (!recommendedSpecialization) return
+  const loadDoctors = useCallback(() => {
+    if (!symptomsText.trim()) return
     setDoctorsLoading(true)
     setDoctorsError(false)
-    getDoctorsBySpecialization(recommendedSpecialization)
-      .then(({ doctors: fetched, usedFallback: fb, effectiveSpecialization: eff }) => {
-        setDoctors(fetched)
-        setUsedFallback(fb)
-        setEffectiveSpecialization(eff || recommendedSpecialization)
-        setDoctorsLoading(false)
-      })
+    resolveDoctorsForSymptom(symptomsText)
+      .then(setDoctorMatch)
       .catch(() => {
+        setDoctorMatch(null)
         setDoctorsError(true)
-        setDoctorsLoading(false)
       })
-  }, [recommendedSpecialization])
+      .finally(() => setDoctorsLoading(false))
+  }, [symptomsText])
+
+  useEffect(() => {
+    if (isHistoryCompactView) {
+      return
+    }
+    loadDoctors()
+  }, [loadDoctors, isHistoryCompactView])
+
+  const analysisDisease =
+    historyConsultation?.possibleCause ??
+    historyConsultation?.aiSummary?.possibleCause ??
+    disease
+  const analysisConfidence = isHistoryCompactView
+    ? Number((historyConsultation as Consultation & { confidence?: number })?.confidence) || confidence
+    : confidence
+  const compactSpecialization =
+    historyConsultation?.recommendedSpecialization ??
+    getSpecFromSymptom(historyConsultation?.symptoms ?? symptomsText)
+  const showAnalysisCard = isHistoryCompactView ? Boolean(analysisDisease) : Boolean(disease)
 
   const submitAiAnswers = useMemo(() => {
     const fromDynamic: Record<string, string> = {}
@@ -2007,76 +2033,109 @@ export const SummaryPage = () => {
           </ul>
         </div>
 
-        {disease ? (
+        {showAnalysisCard ? (
           <div className="card space-y-3 p-5">
             <h3 className="text-sm font-semibold text-foreground">AI Analysis</h3>
             <div className="space-y-2">
               <div className="flex items-center justify-between rounded-app bg-[#E8F0FE] px-3 py-2">
                 <span className="text-sm text-muted">Possible Condition</span>
-                <span className="text-sm font-semibold text-primary">{disease}</span>
+                <span className="text-sm font-semibold text-primary">
+                  {isHistoryCompactView ? analysisDisease : disease}
+                </span>
               </div>
-              {confidence > 0 ? (
+              {(isHistoryCompactView ? analysisConfidence : confidence) > 0 ? (
                 <div className="flex items-center justify-between rounded-app bg-[#F0FDF4] px-3 py-2">
                   <span className="text-sm text-muted">Confidence</span>
-                  <span className="text-sm font-semibold text-success">{confidence}%</span>
+                  <span className="text-sm font-semibold text-success">
+                    {isHistoryCompactView ? analysisConfidence : confidence}%
+                  </span>
                 </div>
               ) : null}
-              {aiSpecialization ? (
+              {isHistoryCompactView && compactSpecialization ? (
                 <div className="flex items-center justify-between rounded-app bg-[#FFF9F0] px-3 py-2">
                   <span className="text-sm text-muted">AI Recommended Specialist</span>
-                  <span className="text-sm font-semibold text-[#D97706]">{aiSpecialization}</span>
+                  <span className="text-sm font-semibold text-[#D97706]">{compactSpecialization}</span>
+                </div>
+              ) : null}
+              {!isHistoryCompactView && hasDoctors && displaySpec ? (
+                <div className="flex items-center justify-between rounded-app bg-[#FFF9F0] px-3 py-2">
+                  <span className="text-sm text-muted">AI Recommended Specialist</span>
+                  <span className="text-sm font-semibold text-[#D97706]">{displaySpec}</span>
                 </div>
               ) : null}
             </div>
           </div>
         ) : null}
 
+        {!isHistoryCompactView ? (
+          <>
         <div className="card space-y-4 p-5 text-center">
           <RiskBadge level={riskLevel} />
           <p className="text-sm text-muted">{t('summary.doctorReview')}</p>
           <p className="text-xs italic text-muted">{'\u26A0\uFE0F'} {t('summary.disclaimer')}</p>
         </div>
 
-        <div className="card space-y-3 p-5">
-          <h3 className="text-sm font-semibold text-foreground">{t('summary.recommendedSpecialist')}</h3>
-          <div className="flex items-start gap-3 rounded-app bg-[#E8F0FE] p-4">
-            <Stethoscope size={22} className="mt-0.5 shrink-0 text-[#1A73E8]" />
-            <div>
-              <p className="font-semibold text-[#1A73E8]">
-                {t('summary.recommendPrefix', { specialization: recommendedSpecialization })}
-              </p>
-              <p className="mt-1 text-xs text-muted">{t('summary.recommendBasedOn')}</p>
-              <p className="mt-1 text-xs text-[#6B7280]">
-                {t('summary.recommendSymptoms', { symptoms: symptomTags.join(', ') })}
-              </p>
+        {hasDoctors ? (
+          <div className="card space-y-3 p-5">
+            <h3 className="text-sm font-semibold text-foreground">{t('summary.recommendedSpecialist')}</h3>
+            <div className="flex items-start gap-3 rounded-app bg-[#E8F0FE] p-4">
+              <Stethoscope size={22} className="mt-0.5 shrink-0 text-[#1A73E8]" />
+              <div>
+                <p className="font-semibold text-[#1A73E8]">
+                  {t('summary.recommendPrefix', { specialization: displaySpec })}
+                </p>
+                <p className="mt-1 text-xs text-muted">{t('summary.recommendBasedOn')}</p>
+                <p className="mt-1 text-xs text-[#6B7280]">
+                  {t('summary.recommendSymptoms', { symptoms: symptomTags.join(', ') })}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
         {doctorsLoading ? (
           <div className="flex items-center justify-center py-8">
             <LoadingSpinner size={28} />
           </div>
         ) : doctorsError ? (
-          <p className="rounded-app bg-danger/10 px-4 py-3 text-center text-sm text-danger">
-            {t('common.loadError')}
-          </p>
-        ) : doctors.length === 0 ? (
-          <p className="rounded-app bg-muted/10 px-4 py-3 text-center text-sm text-muted">
-            {t('summary.noDoctorsFound')}
-          </p>
+          <div className="card space-y-4 p-5 text-center">
+            <p className="text-sm text-danger">{t('common.loadError')}</p>
+            <button type="button" className="btn-primary w-full" onClick={() => loadDoctors()}>
+              {t('common.retry')}
+            </button>
+          </div>
+        ) : !hasDoctors ? (
+          <div className="card space-y-4 p-5 text-center">
+            <p className="text-sm text-muted">{t('summary.noDoctorsAvailable')}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" className="btn-secondary" onClick={() => loadDoctors()}>
+                {t('common.retry')}
+              </button>
+              <a href="tel:112" className="btn-primary flex items-center justify-center">
+                {t('summary.callEmergency')}
+              </a>
+            </div>
+          </div>
         ) : (
-          <DoctorSelectDropdown
-            doctors={doctors}
-            specialization={effectiveSpecialization || recommendedSpecialization}
-            selected={selectedDoctor}
-            onSelect={(doctor) => {
-              setSelectedDoctor(doctor)
-              setShowSelectHint(false)
-            }}
-            usedFallback={usedFallback}
-            requestedSpecialization={recommendedSpecialization}
-          />
+          <>
+            {usedFallback ? (
+              <p className="rounded-app border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {t('summary.doctorFallback', {
+                  recommendedSpec: doctorMatch?.recommendedSpec ?? recommendedSpec,
+                  fallbackSpec: displaySpec,
+                })}
+              </p>
+            ) : null}
+            <DoctorSelectDropdown
+              doctors={doctorMatch?.doctors ?? []}
+              specialization={displaySpec}
+              selected={selectedDoctor}
+              onSelect={(doctor) => {
+                setSelectedDoctor(doctor)
+                setShowSelectHint(false)
+              }}
+            />
+          </>
         )}
 
         {showSelectHint ? (
@@ -2085,8 +2144,8 @@ export const SummaryPage = () => {
 
         <button
           type="button"
-          className={classNames('btn-primary', !selectedDoctor && !loading && 'opacity-60')}
-          disabled={loading || !selectedDoctor}
+          className={classNames('btn-primary', (!selectedDoctor || !hasDoctors) && !loading && 'opacity-60')}
+          disabled={loading || !selectedDoctor || !hasDoctors}
           title={!selectedDoctor ? t('summary.selectDoctorFirst') : undefined}
           onClick={async () => {
             if (!selectedDoctor) {
@@ -2102,7 +2161,7 @@ export const SummaryPage = () => {
                 aiAnswers: submitAiAnswers,
                 riskLevel: consultation.riskLevel ?? flowRisk,
                 doctorId: selectedDoctor.id,
-                recommendedSpecialization: aiSpecialization || recommendedSpecialization,
+                recommendedSpecialization: displaySpec,
                 patientId: profile?.id,
               })
               dispatch(resetConsultation())
@@ -2123,6 +2182,8 @@ export const SummaryPage = () => {
             t('summary.submitToDoctor')
           )}
         </button>
+          </>
+        ) : null}
       </div>
     </Layout>
   )
@@ -3306,47 +3367,82 @@ export const HistoryPage = () => {
                       {item.caseStatus ? <CaseStatusBadge status={item.caseStatus} /> : null}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-0 border-t border-border/60">
+                  <div
+                    className={classNames(
+                      'border-t border-border/60',
+                      item.caseStatus === 'PRESCRIPTION_READY' ? 'grid grid-cols-3' : 'grid grid-cols-2',
+                    )}
+                  >
                     <button
                       type="button"
                       className="py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 active:scale-[0.97]"
                       onClick={() => {
                         dispatch(hydrateFromConsultation(item))
-                        navigate('/summary')
+                        navigate(
+                          '/summary',
+                          item.caseStatus === 'PRESCRIPTION_READY'
+                            ? { state: { historyCompactView: true, historyConsultation: item } }
+                            : undefined,
+                        )
                       }}
                     >
                       {t('common.view')}
                     </button>
-                    <div className="border-l border-border/60">
                     {item.caseStatus === 'NEED_MORE_INFO' ? (
-                      <button
-                        type="button"
-                        className="w-full py-2.5 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-50 active:scale-[0.97]"
-                        onClick={() => navigate('/notifications')}
-                      >
-                        {t('history.replyToDoctor')}
-                      </button>
-                    ) : item.caseStatus === 'PRESCRIPTION_READY' || item.caseStatus === 'CLOSED' ? (
-                      <button
-                        type="button"
-                        className={classNames(
-                          'w-full py-2.5 text-sm font-semibold transition-colors active:scale-[0.97]',
-                          item.caseStatus === 'CLOSED' ? 'text-muted hover:bg-slate-50' : 'text-primary hover:bg-primary/5',
-                        )}
-                        onClick={() => openPrescription(item.id)}
-                      >
-                        {t('history.viewPrescription')}
-                      </button>
+                      <div className="border-l border-border/60">
+                        <button
+                          type="button"
+                          className="w-full py-2.5 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-50 active:scale-[0.97]"
+                          onClick={() => navigate('/notifications')}
+                        >
+                          {t('history.replyToDoctor')}
+                        </button>
+                      </div>
+                    ) : item.caseStatus === 'PRESCRIPTION_READY' ? (
+                      <>
+                        <div className="border-l border-border/60">
+                          <button
+                            type="button"
+                            className="w-full py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 active:scale-[0.97]"
+                            onClick={() => openPrescription(item.id)}
+                          >
+                            {t('history.viewPrescription')}
+                          </button>
+                        </div>
+                        <div className="border-l border-border/60">
+                          <button
+                            type="button"
+                            className="w-full py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 active:scale-[0.97]"
+                            onClick={() => navigate('/follow-up')}
+                          >
+                            {t('history.bookFollowUp')}
+                          </button>
+                        </div>
+                      </>
+                    ) : item.caseStatus === 'CLOSED' ? (
+                      <div className="border-l border-border/60">
+                        <button
+                          type="button"
+                          className={classNames(
+                            'w-full py-2.5 text-sm font-semibold transition-colors active:scale-[0.97]',
+                            'text-muted hover:bg-slate-50',
+                          )}
+                          onClick={() => openPrescription(item.id)}
+                        >
+                          {t('history.viewPrescription')}
+                        </button>
+                      </div>
                     ) : (
-                      <button
-                        type="button"
-                        className="w-full py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 active:scale-[0.97]"
-                        onClick={() => navigate('/follow-up')}
-                      >
-                        {t('history.bookFollowUp')}
-                      </button>
+                      <div className="border-l border-border/60">
+                        <button
+                          type="button"
+                          className="w-full py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 active:scale-[0.97]"
+                          onClick={() => navigate('/follow-up')}
+                        >
+                          {t('history.bookFollowUp')}
+                        </button>
+                      </div>
                     )}
-                    </div>
                   </div>
                 </div>
               ))}

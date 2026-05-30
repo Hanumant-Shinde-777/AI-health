@@ -18,7 +18,6 @@ client.interceptors.request.use((config) => {
 })
 
 const REGISTRATION_PATHS = ['/patient-register', '/doctor-register', '/otp']
-
 client.interceptors.response.use(
   (response) => response,
   async (error: unknown) => {
@@ -30,11 +29,11 @@ client.interceptors.response.use(
       if (!isRegistrationPath) {
         removeStorage(storageKeys.token)
         removeStorage(storageKeys.authUser)
+        removeStorage(storageKeys.role)
         if (currentPath !== '/login') {
           window.location.assign('/login')
         }
-      }
-    }
+      }    }
 
     return Promise.reject(error)
   },

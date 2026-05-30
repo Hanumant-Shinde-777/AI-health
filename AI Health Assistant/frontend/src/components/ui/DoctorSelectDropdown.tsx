@@ -10,8 +10,6 @@ interface DoctorSelectDropdownProps {
   specialization: string
   selected: MatchedDoctor | null
   onSelect: (doctor: MatchedDoctor) => void
-  usedFallback?: boolean
-  requestedSpecialization?: string
 }
 
 const DoctorSelectDropdown = ({
@@ -19,8 +17,6 @@ const DoctorSelectDropdown = ({
   specialization,
   selected,
   onSelect,
-  usedFallback = false,
-  requestedSpecialization,
 }: DoctorSelectDropdownProps) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
@@ -68,12 +64,6 @@ const DoctorSelectDropdown = ({
           {t('summary.doctorCount', { count: doctors.length, specialization })}
         </p>
       </div>
-
-      {usedFallback && requestedSpecialization ? (
-        <p className="rounded-app bg-[#FFF3E0] px-3 py-2 text-xs text-[#E65100]">
-          {t('summary.doctorFallback', { specialization: requestedSpecialization })}
-        </p>
-      ) : null}
 
       <FormField label={t('formLabels.selectDoctor')} htmlFor="summary-doctor-select" required>
       <div className="relative">

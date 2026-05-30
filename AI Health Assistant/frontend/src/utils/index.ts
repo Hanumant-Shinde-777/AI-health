@@ -146,6 +146,10 @@ export const delay = (ms = 400): Promise<void> =>
 export const generateId = (prefix: string): string =>
   `${prefix}-${Math.random().toString(36).slice(2, 8)}`
 
+/** IDs from generateId() — not stored in the backend database */
+export const isLocalMockId = (id: string): boolean =>
+  /^(consultation|prescription|patient|doctor|notif)-/.test(id)
+
 export const getInitialLanguage = (): string => {
   if (typeof window === 'undefined') {
     return 'mr'

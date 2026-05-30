@@ -1,6 +1,11 @@
 import client from '@/services/apiClient'
 import { delay, readDoctorProfile, writeDoctorProfile, type DoctorProfileRecord } from '@/utils'
 import type { MatchedDoctor } from '@/types/doctors'
+import {
+  getSpecFromSymptom,
+  getSpecializationFallbackChain,
+  getSpecializationQueryVariants,
+} from '@/utils/doctors'
 
 export interface DoctorProfileUpdateInput {
   fullName: string
@@ -23,6 +28,13 @@ interface BackendDoctorListItem {
   availability: boolean
 }
 
+export interface DoctorMatchResult {
+  doctors: MatchedDoctor[]
+  recommendedSpec: string
+  displaySpec: string
+  usedFallback: boolean
+}
+
 const mapToMatchedDoctor = (d: BackendDoctorListItem): MatchedDoctor => ({
   id: d.id,
   name: d.fullName,
@@ -35,6 +47,76 @@ const mapToMatchedDoctor = (d: BackendDoctorListItem): MatchedDoctor => ({
   nextAvailable: d.availability ? 'Today' : 'Soon',
 })
 
+const fetchDoctorsBySpecQuery = async (specialization: string): Promise<MatchedDoctor[]> => {
+  const response = await client.get<{ success: boolean; data: BackendDoctorListItem[] }>('/doctors', {
+    params: { specialization },
+  })
+  return (response.data.data ?? []).map(mapToMatchedDoctor)
+}
+
+/** Try exact specialization query variants until doctors are found. */
+export const fetchDoctorsForSpecialization = async (spec: string): Promise<MatchedDoctor[]> => {
+  const variants = getSpecializationQueryVariants(spec)
+  for (const variant of variants) {
+    const doctors = await fetchDoctorsBySpecQuery(variant)
+    if (doctors.length > 0) {
+      return doctors
+    }
+  }
+  return []
+}
+
+/**
+ * Resolve doctors for a symptom using recommended spec + related fallback chain.
+ * All UI should use displaySpec from the result (original or fallback).
+ */
+export const resolveDoctorsForSymptom = async (symptom: string): Promise<DoctorMatchResult> => {
+  const recommendedSpec = getSpecFromSymptom(symptom)
+  const chain = getSpecializationFallbackChain(recommendedSpec)
+
+  for (let i = 0; i < chain.length; i += 1) {
+    const spec = chain[i]
+    const doctors = await fetchDoctorsForSpecialization(spec)
+    if (doctors.length > 0) {
+      return {
+        doctors,
+        recommendedSpec,
+        displaySpec: spec,
+        usedFallback: i > 0,
+      }
+    }
+  }
+
+  return {
+    doctors: [],
+    recommendedSpec,
+    displaySpec: recommendedSpec,
+    usedFallback: false,
+  }
+}
+
+/** @deprecated Use resolveDoctorsForSymptom — kept for compatibility. */
+export const getDoctorsBySpecialization = async (
+  specialization: string,
+): Promise<{ doctors: MatchedDoctor[]; usedFallback: boolean; effectiveSpecialization: string }> => {
+  const recommendedSpec = specialization
+  const chain = getSpecializationFallbackChain(recommendedSpec)
+
+  for (let i = 0; i < chain.length; i += 1) {
+    const spec = chain[i]
+    const doctors = await fetchDoctorsForSpecialization(spec)
+    if (doctors.length > 0) {
+      return {
+        doctors,
+        usedFallback: i > 0,
+        effectiveSpecialization: spec,
+      }
+    }
+  }
+
+  return { doctors: [], usedFallback: false, effectiveSpecialization: recommendedSpec }
+}
+
 /** Fetch the authenticated doctor's own profile from the backend. */
 export const getDoctorProfile = async (): Promise<DoctorProfileRecord | null> => {
   try {
@@ -42,33 +124,6 @@ export const getDoctorProfile = async (): Promise<DoctorProfileRecord | null> =>
     return response.data
   } catch {
     return null
-  }
-}
-
-/** Fetch doctors filtered by specialization from the backend. Falls back to General Physician if none found. */
-export const getDoctorsBySpecialization = async (
-  specialization: string,
-): Promise<{ doctors: MatchedDoctor[]; usedFallback: boolean; effectiveSpecialization: string }> => {
-  try {
-    const response = await client.get<{ success: boolean; data: BackendDoctorListItem[] }>('/doctors', {
-      params: { specialization },
-    })
-    let doctors = (response.data.data ?? []).map(mapToMatchedDoctor)
-    let effective = specialization
-    let usedFallback = false
-
-    if (doctors.length === 0 && specialization !== 'General Physician') {
-      const fallback = await client.get<{ success: boolean; data: BackendDoctorListItem[] }>('/doctors', {
-        params: { specialization: 'General Physician' },
-      })
-      doctors = (fallback.data.data ?? []).map(mapToMatchedDoctor)
-      effective = 'General Physician'
-      usedFallback = true
-    }
-
-    return { doctors, usedFallback, effectiveSpecialization: effective }
-  } catch {
-    return { doctors: [], usedFallback: false, effectiveSpecialization: specialization }
   }
 }
 
