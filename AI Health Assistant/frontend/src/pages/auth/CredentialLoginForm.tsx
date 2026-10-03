@@ -267,7 +267,7 @@ export const CredentialLoginForm = ({
               maxLength={10}
               className="flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-subtle"
               inputMode="numeric"
-              placeholder="10-digit number"
+              placeholder={t('inputHints.phoneDigits')}
               disabled={loading || otpSent}
             />
           </div>

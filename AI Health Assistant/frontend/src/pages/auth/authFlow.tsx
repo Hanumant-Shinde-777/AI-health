@@ -436,7 +436,7 @@ export const AuthPage = () => {
                         className="flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-subtle"
                         inputMode="numeric"
                         autoComplete="off"
-                        placeholder="10-digit number"
+                        placeholder={t('inputHints.phoneDigits')}
                       />
                     </div>
                   </FormField>
@@ -537,7 +537,7 @@ export const AuthPage = () => {
                         className="flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-subtle"
                         inputMode="numeric"
                         autoComplete="off"
-                        placeholder="10-digit number"
+                        placeholder={t('inputHints.phoneDigits')}
                       />
                     </div>
                   </FormField>
@@ -1230,7 +1230,7 @@ export const PatientMyProfilePage = () => {
     </div>
   )
 
-  const firstName = profile?.fullName?.split(' ')[0] ?? 'User'
+  const firstName = profile?.fullName?.split(' ')[0] ?? t('inputHints.defaultName')
   const initials = (profile?.fullName ?? 'U').split(/\s+/).filter(Boolean).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
 
   return (

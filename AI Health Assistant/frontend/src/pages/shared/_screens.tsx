@@ -801,7 +801,7 @@ export const HomePage = () => {
     { icon: Headphones, label: t('home.support'), to: '/support' },
   ]
 
-  const firstName = profile?.fullName?.split(' ')[0] ?? 'User'
+  const firstName = profile?.fullName?.split(' ')[0] ?? t('inputHints.defaultName')
   const [notificationCount, setNotificationCount] = useState(0)
 
   useEffect(() => {

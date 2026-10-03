@@ -1049,5 +1049,9 @@
     "prescriptionReadyTitle": "Your prescription is ready",
     "prescriptionReadyBody": "{{doctor}} approved your prescription. Tap to view or download it.",
     "refreshError": "Couldn't load the latest notifications. Showing what's on this device."
+  },
+  "inputHints": {
+    "phoneDigits": "10-digit number",
+    "defaultName": "User"
   }
 }
