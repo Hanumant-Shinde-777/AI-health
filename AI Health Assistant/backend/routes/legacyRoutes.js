@@ -225,17 +225,22 @@ router.get('/prescriptions/:id', asyncHandler(async (req, res) => {
 
 router.post('/prescriptions', roleMiddleware('doctor'), asyncHandler(async (req, res) => {
   const { consultationId, patientId, diagnosis, medicines, advice, followUpDate } = req.body
-  if (!consultationId || !patientId || !diagnosis) {
-    throw new ApiError(400, 'consultationId, patientId and diagnosis are required', 'VALIDATION')
+  if (!consultationId || !diagnosis) {
+    throw new ApiError(400, 'consultationId and diagnosis are required', 'VALIDATION')
   }
   const consultation = await prisma.consultation.findUnique({ where: { id: consultationId } })
   if (!consultation || consultation.doctorId !== req.user.id) {
     throw new ApiError(404, 'Consultation not found', 'NOT_FOUND')
   }
+  // The prescription's patient is always the consultation's patient. patientId is optional
+  // (the app doesn't send it); if a client does send one it must match.
+  if (patientId && patientId !== consultation.patientId) {
+    throw new ApiError(400, 'patientId does not match the consultation', 'VALIDATION')
+  }
   const row = await prisma.prescription.create({
     data: {
       consultationId,
-      patientId,
+      patientId: consultation.patientId,
       doctorId: req.user.id,
       diagnosis,
       medicines: medicines ?? [],
