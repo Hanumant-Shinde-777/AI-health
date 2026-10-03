@@ -822,5 +822,29 @@
     "requestFailed": "Something went wrong. Please try again.",
     "offlineError": "You are offline. Check your connection and try again.",
     "rateLimited": "Too many requests. Please wait a moment and try again."
+  },
+  "emergency": {
+    "title": "Emergency help",
+    "subtitle": "If this is an emergency, call now. Do not wait for the app.",
+    "national": "National emergency",
+    "ambulance": "Ambulance",
+    "mentalHealth": "Mental health helpline (Tele-MANAS)",
+    "call": "Call",
+    "callNow": "Call 112 now",
+    "moreOptions": "More emergency numbers",
+    "yourContact": "Your emergency contact",
+    "noContact": "No emergency contact saved yet.",
+    "addContact": "Add",
+    "warningTitle": "Call immediately if you notice",
+    "signs": {
+      "chestPain": "Chest pain or pressure, especially spreading to the arm, jaw or back",
+      "breathing": "Severe difficulty breathing or blue lips",
+      "stroke": "Face drooping, arm weakness or slurred speech (possible stroke)",
+      "bleeding": "Heavy bleeding that will not stop",
+      "unconscious": "Fainting, seizure or not responding",
+      "allergy": "Swelling of the face or throat after food, medicine or a sting",
+      "selfHarm": "Thoughts of harming yourself"
+    },
+    "disclaimer": "This app cannot contact emergency services for you. Calls go through your phone."
   }
 }

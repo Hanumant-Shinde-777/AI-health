@@ -35,4 +35,5 @@
   PDF_SHARE: '/pdf-share',
   FOLLOW_UP: '/follow-up',
   HISTORY: '/history',
+  EMERGENCY: '/emergency',
 } as const

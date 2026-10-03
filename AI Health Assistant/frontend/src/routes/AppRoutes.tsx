@@ -31,6 +31,7 @@ const SummaryPage = lazy(() => import('@/pages/patient/SummaryPage'))
 const SubmissionSuccessPage = lazy(() => import('@/pages/patient/SubmissionSuccessPage'))
 const SymptomsPage = lazy(() => import('@/pages/patient/SymptomsPage'))
 const WelcomePage = lazy(() => import('@/pages/auth/WelcomePage'))
+const EmergencyPage = lazy(() => import('@/pages/patient/EmergencyPage'))
 const AuthPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.AuthPage })))
 const DoctorRegistrationPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.DoctorRegistrationPage })))
 const NotificationsPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.NotificationsPage })))
@@ -48,6 +49,8 @@ const RootLayout = () => (
 const routes: RouteObject[] = [
   { path: '/', element: <LanguagePage /> },
   { path: '/welcome', element: <WelcomePage /> },
+  // Public on purpose: emergency numbers must work without a session
+  { path: '/emergency', element: <EmergencyPage /> },
   { path: '/role-selection', element: <RoleSelectionPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/auth', element: <AuthPage /> },

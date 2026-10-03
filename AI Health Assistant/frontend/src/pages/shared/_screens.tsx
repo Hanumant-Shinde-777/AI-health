@@ -26,6 +26,7 @@ import {
   LogOut,
   Mic,
   Pencil,
+  PhoneCall,
   Pill,
   Plus,
   RotateCcw,
@@ -793,7 +794,7 @@ export const HomePage = () => {
     { icon: FileText, label: t('home.prescriptions'), to: '/history' },
     { icon: Search, label: t('home.findDoctor') },
     { icon: Heart, label: t('home.healthTips') },
-    { icon: AlertTriangle, label: t('home.emergency') },
+    { icon: AlertTriangle, label: t('home.emergency'), to: '/emergency' },
     { icon: Headphones, label: t('home.support') },
   ]
 
@@ -1354,6 +1355,16 @@ export const AiQuestionsPage = () => {
               <p className="text-sm leading-relaxed text-foreground/90">{emergencyMessage || t('symptoms.emergencyBody')}</p>
             </div>
           </div>
+          <a
+            href="tel:112"
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-app bg-gradient-to-br from-danger to-danger/80 text-lg font-bold text-white shadow-[0_8px_28px_rgb(var(--c-danger)/0.4)] transition active:scale-[0.98]"
+          >
+            <PhoneCall size={22} />
+            {t('emergency.callNow', 'Call 112 now')}
+          </a>
+          <button type="button" className="btn-secondary" onClick={() => navigate('/emergency')}>
+            {t('emergency.moreOptions', 'More emergency numbers')}
+          </button>
           <button type="button" className="btn-primary" onClick={() => navigate('/home')}>
             {t('common.ok') || 'OK'}
           </button>
