@@ -796,5 +796,21 @@
     "noMatches": "No matching results",
     "noMatchesHint": "Try a different search or clear the filters.",
     "clearFilters": "Clear filters"
+  },
+  "report": {
+    "title": "Health Summary Report",
+    "savePdf": "Save as PDF",
+    "share": "Share",
+    "copied": "Summary copied to clipboard",
+    "shareFailed": "Could not share the summary. Please try again.",
+    "downloadFailed": "Could not download the PDF. Please try again.",
+    "submitFailed": "Could not submit to the doctor. Please try again.",
+    "patient": "Patient",
+    "generated": "Generated",
+    "aiAnalysis": "AI Analysis",
+    "possibleCondition": "Possible Condition",
+    "confidence": "Confidence",
+    "aiSpecialist": "AI Recommended Specialist",
+    "risk": "Risk level"
   }
 }

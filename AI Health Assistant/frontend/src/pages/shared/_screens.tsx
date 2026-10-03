@@ -71,6 +71,8 @@ import ThinkingIndicator from '@/components/feedback/ThinkingIndicator'
 import ChatBubble from '@/components/ui/ChatBubble'
 import { AppearanceCard } from '@/components/ui/ThemeToggle'
 import HistoryFilters from '@/components/ui/HistoryFilters'
+import ReportActions, { PrintHeader } from '@/components/ui/ReportActions'
+import { buildShareText } from '@/utils/healthReport'
 import { filterConsultations, filterPrescriptions, type RiskFilter } from '@/utils/historyFilters'
 import RiskBadge from '@/components/ui/RiskBadge'
 import { useToast } from '@/components/feedback/Toast'
@@ -1791,6 +1793,7 @@ export const SummaryPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
+  const { showToast } = useToast()
   const consultation = useAppSelector((state) => state.consultation)
   const profile = useAppSelector((state) => state.patient.profile)
   const [loading, setLoading] = useState(false)
@@ -1899,7 +1902,10 @@ export const SummaryPage = () => {
   return (
     <Layout>
       <div className="page-padding space-y-5 bg-background">
-        <Header title={t('summary.title')} onBack={() => navigate(-1)} />
+        <div className="print:hidden">
+          <Header title={t('summary.title')} onBack={() => navigate(-1)} />
+        </div>
+        <PrintHeader patientName={profile?.fullName} />
 
         <div className="card space-y-4 p-5">
           <h2 className="text-lg font-semibold text-foreground">{t('summary.cardTitle')}</h2>
@@ -1913,21 +1919,21 @@ export const SummaryPage = () => {
 
         {disease ? (
           <div className="card space-y-3 p-5">
-            <h3 className="text-sm font-semibold text-foreground">AI Analysis</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('report.aiAnalysis', 'AI Analysis')}</h3>
             <div className="space-y-2">
               <div className="flex items-center justify-between rounded-app bg-primary/15 px-3 py-2">
-                <span className="text-sm text-muted">Possible Condition</span>
+                <span className="text-sm text-muted">{t('report.possibleCondition', 'Possible Condition')}</span>
                 <span className="text-sm font-semibold text-primary">{disease}</span>
               </div>
               {confidence > 0 ? (
                 <div className="flex items-center justify-between rounded-app bg-success/10 px-3 py-2">
-                  <span className="text-sm text-muted">Confidence</span>
+                  <span className="text-sm text-muted">{t('report.confidence', 'Confidence')}</span>
                   <span className="text-sm font-semibold text-success">{confidence}%</span>
                 </div>
               ) : null}
               {aiSpecialization ? (
                 <div className="flex items-center justify-between rounded-app bg-warning/10 px-3 py-2">
-                  <span className="text-sm text-muted">AI Recommended Specialist</span>
+                  <span className="text-sm text-muted">{t('report.aiSpecialist', 'AI Recommended Specialist')}</span>
                   <span className="text-sm font-semibold text-warning">{aiSpecialization}</span>
                 </div>
               ) : null}
@@ -1940,6 +1946,23 @@ export const SummaryPage = () => {
           <p className="text-sm text-muted">{t('summary.doctorReview')}</p>
           <p className="text-xs italic text-muted">{'\u26A0\uFE0F'} {t('summary.disclaimer')}</p>
         </div>
+
+        <ReportActions
+          title={t('report.title', 'Health Summary Report')}
+          getShareText={() =>
+            buildShareText({
+              title: t('report.title', 'Health Summary Report'),
+              lines: summaryBullets,
+              condition: disease || undefined,
+              conditionLabel: t('report.possibleCondition', 'Possible Condition'),
+              riskLabel: t('report.risk', 'Risk level'),
+              risk: t(`historyFilters.${riskLevel.toLowerCase()}`, riskLevel),
+              specialistLabel: t('summary.recommendedSpecialist'),
+              specialist: aiSpecialization || recommendedSpecialization || undefined,
+              disclaimer: t('summary.disclaimer'),
+            })
+          }
+        />
 
         <div className="card space-y-3 p-5">
           <h3 className="text-sm font-semibold text-foreground">{t('summary.recommendedSpecialist')}</h3>
@@ -1957,6 +1980,7 @@ export const SummaryPage = () => {
           </div>
         </div>
 
+        <div className="print:hidden">
         {doctorsLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-4 w-40" />
@@ -1983,14 +2007,15 @@ export const SummaryPage = () => {
             requestedSpecialization={recommendedSpecialization}
           />
         )}
+        </div>
 
         {showSelectHint ? (
-          <p className="text-center text-xs text-danger">{t('summary.selectDoctorFirst')}</p>
+          <p className="text-center text-xs text-danger print:hidden">{t('summary.selectDoctorFirst')}</p>
         ) : null}
 
         <button
           type="button"
-          className={classNames('btn-primary', !selectedDoctor && !loading && 'opacity-60')}
+          className={classNames('btn-primary print:hidden', !selectedDoctor && !loading && 'opacity-60')}
           disabled={loading || !selectedDoctor}
           title={!selectedDoctor ? t('summary.selectDoctorFirst') : undefined}
           onClick={async () => {
@@ -2014,6 +2039,8 @@ export const SummaryPage = () => {
               navigate('/submission-success', {
                 state: { doctor: selectedDoctor, consultationId: response.consultationId },
               })
+            } catch {
+              showToast(t('report.submitFailed', 'Could not submit to the doctor. Please try again.'))
             } finally {
               setLoading(false)
             }
@@ -2912,13 +2939,17 @@ export const PdfSharePage = () => {
             type="button"
             className="btn-primary"
             onClick={async () => {
-              const blob = await downloadPdf(prescription.id)
-              const url = URL.createObjectURL(blob)
-              const anchor = document.createElement('a')
-              anchor.href = url
-              anchor.download = `${prescription.id}.pdf`
-              anchor.click()
-              URL.revokeObjectURL(url)
+              try {
+                const blob = await downloadPdf(prescription.id)
+                const url = URL.createObjectURL(blob)
+                const anchor = document.createElement('a')
+                anchor.href = url
+                anchor.download = `${prescription.id}.pdf`
+                anchor.click()
+                URL.revokeObjectURL(url)
+              } catch {
+                showToast(t('report.downloadFailed', 'Could not download the PDF. Please try again.'))
+              }
             }}
           >
             {t('pdfShare.downloadPdf')}
@@ -2928,15 +2959,24 @@ export const PdfSharePage = () => {
             className="btn-secondary"
             onClick={async () => {
               if (navigator.share) {
-                await navigator.share({
-                  title: t('pdfShare.title'),
-                  text: prescription.diagnosis,
-                  url: window.location.href,
-                })
-                return
+                try {
+                  await navigator.share({
+                    title: t('pdfShare.title'),
+                    text: prescription.diagnosis,
+                    url: window.location.href,
+                  })
+                  return
+                } catch (error) {
+                  // User closed the share sheet — nothing to report
+                  if (error instanceof DOMException && error.name === 'AbortError') return
+                }
               }
-              await navigator.clipboard.writeText(window.location.href)
-              showToast(t('pdfShare.shareSuccess'))
+              try {
+                await navigator.clipboard.writeText(window.location.href)
+                showToast(t('pdfShare.shareSuccess'))
+              } catch {
+                showToast(t('report.shareFailed', 'Could not share the summary. Please try again.'))
+              }
             }}
           >
             {t('pdfShare.share')}

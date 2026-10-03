@@ -32,7 +32,7 @@ export const ToastProvider = ({ children }: PropsWithChildren) => {
     <ToastContext.Provider value={value}>
       {children}
       <div
-        className="pointer-events-none fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-50 flex w-full max-w-[430px] -translate-x-1/2 flex-col gap-2 px-4"
+        className="pointer-events-none fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-50 print:hidden flex w-full max-w-[430px] -translate-x-1/2 flex-col gap-2 px-4"
         aria-live="polite"
       >
         {toasts.map((toast) => (

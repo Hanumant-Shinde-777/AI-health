@@ -427,3 +427,67 @@ input[inputmode="numeric"].otp-digit {
 ::-webkit-scrollbar-thumb:hover {
   background: rgb(var(--c-subtle));
 }
+
+/*
+ * Print / "Save as PDF" — always light, full width, no app chrome.
+ * Elements opt out with Tailwind's `print:hidden`; PrintHeader opts in with `hidden print:block`.
+ */
+@media print {
+  :root,
+  :root[data-theme] {
+    --c-background: 255 255 255;
+    --c-card: 255 255 255;
+    --c-surface: 243 245 249;
+    --c-border: 214 220 230;
+    --c-foreground: 17 24 39;
+    --c-muted: 75 85 99;
+    --c-subtle: 107 114 128;
+    --c-primary: 26 115 232;
+    --c-primary-dark: 13 71 161;
+    --c-success: 24 135 64;
+    --c-danger: 200 40 32;
+    --c-warning: 160 92 0;
+    --c-page: 255 255 255;
+    --shadow-card: none;
+    --shadow-card-hover: none;
+    --shadow-float: none;
+    --shadow-shell: none;
+    color-scheme: light;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+
+  body,
+  .bg-background {
+    background: #fff !important;
+  }
+
+  nav,
+  .fab {
+    display: none !important;
+  }
+
+  .max-w-\[430px\] {
+    max-width: none !important;
+    border: 0 !important;
+  }
+
+  .pb-nav {
+    padding-bottom: 0 !important;
+  }
+
+  .card {
+    break-inside: avoid;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
