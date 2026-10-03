@@ -7,6 +7,7 @@ import {
   writeStorage,
 } from '@/utils'
 import { getCurrentPatientId } from '@/utils/userScope'
+import { assertMockFallbackAllowed } from '@/services/fallbackPolicy'
 
 const hasToken = (): boolean =>
   typeof window !== 'undefined' && Boolean(window.localStorage.getItem(storageKeys.token))
@@ -50,9 +51,9 @@ export const updateProfile = async (data: Partial<Patient>): Promise<Patient> =>
     try {
       const response = await client.put<Patient>('/patients/me', data)
       return response.data
-    } catch {
-      // fall through to local fallback
-    }
+    } catch (error) {
+      assertMockFallbackAllowed(error)
+      }
   }
   await delay()
   const patientId = getCurrentPatientId() ?? data.id
@@ -86,9 +87,9 @@ export const updateMedicalHistory = async (data: MedicalHistory): Promise<Medica
     try {
       const response = await client.put<MedicalHistory>('/patients/me/medical-history', data)
       return response.data
-    } catch {
-      // fall through to local fallback
-    }
+    } catch (error) {
+      assertMockFallbackAllowed(error)
+      }
   }
   writeStorage(storageKeys.medicalHistory, data)
   return data

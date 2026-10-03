@@ -817,5 +817,10 @@
     "startRecording": "Start recording",
     "stopRecording": "Stop recording",
     "edit": "Edit"
+  },
+  "network": {
+    "requestFailed": "Something went wrong. Please try again.",
+    "offlineError": "You are offline. Check your connection and try again.",
+    "rateLimited": "Too many requests. Please wait a moment and try again."
   }
 }

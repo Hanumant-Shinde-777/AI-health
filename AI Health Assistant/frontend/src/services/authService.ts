@@ -26,6 +26,7 @@ import {
 import { formatIndianPhone } from '@/utils/phone'
 import { resolveDoctorIdForLogin, resolvePatientIdForLogin } from '@/utils/userScope'
 import type { AppUserRole } from '@/store/slices/onboardingStore'
+import { assertMockFallbackAllowed, canUseMockFallback, isDemoMode } from '@/services/fallbackPolicy'
 
 export type { LoginMethod, LoginUserRole, InitiateLoginParams, VerifyLoginOtpParams }
 export { LoginValidationError, LOGIN_ERROR_MESSAGES } from '@/services/loginValidation'
@@ -135,7 +136,8 @@ export const sendOtp = async (mobile: string, flowRole?: AppUserRole): Promise<S
       markOtpSent()
     }
     return { ...response.data, phone }
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     if (typeof window !== 'undefined') {
       window.sessionStorage.setItem(storageKeys.draftOtp, '123456')
@@ -192,7 +194,7 @@ export const verifyOtp = async (
     persistLastMobile(phone)
     return applyRegistrationNewUserFlag(response.data)
   } catch (error) {
-    if (useStrictApi) {
+    if (useStrictApi || !canUseMockFallback(error)) {
       throw error
     }
     await delay()
@@ -243,7 +245,7 @@ export const loginInitiate = async (params: InitiateLoginParams): Promise<void> 
       markOtpSent()
     }
   } catch (error) {
-    if (!isNetworkOrCorsError(error)) {
+    if (!isNetworkOrCorsError(error) || !isDemoMode()) {
       throw error
     }
     await initiateLogin(params)
@@ -270,7 +272,7 @@ export const loginComplete = async (params: VerifyLoginOtpParams): Promise<Login
     const response = await client.post<LoginVerificationResponse>('/auth/login/verify', params)
     return applyRegistrationNewUserFlag(response.data)
   } catch (error) {
-    if (!isNetworkOrCorsError(error)) {
+    if (!isNetworkOrCorsError(error) || !isDemoMode()) {
       throw error
     }
     return applyRegistrationNewUserFlag(await verifyLoginOtp(params))
@@ -293,7 +295,7 @@ export const loginResendOtp = async (params: {
       markOtpSent()
     }
   } catch (error) {
-    if (!isNetworkOrCorsError(error)) {
+    if (!isNetworkOrCorsError(error) || !isDemoMode()) {
       throw error
     }
     await resendLoginOtp(params)

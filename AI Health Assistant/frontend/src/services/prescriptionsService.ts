@@ -15,6 +15,7 @@ import {
   getCurrentPatientId,
 } from '@/utils/userScope'
 import { notifyPatientPrescriptionReady } from '@/utils/notifications'
+import { assertMockFallbackAllowed } from '@/services/fallbackPolicy'
 
 export const getPrescription = async (id: string): Promise<Prescription> => {
   try {
@@ -52,7 +53,8 @@ export const createPrescription = async (data: PrescriptionPayload): Promise<Pre
   try {
     const response = await client.post<Prescription>('/prescriptions', data)
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const prescriptions = getMockPrescriptions()
     const consultation = getMockConsultations().find((item) => item.id === data.consultationId)
@@ -89,7 +91,8 @@ export const updatePrescription = async (
   try {
     const response = await client.patch<Prescription>(`/prescriptions/${id}`, data)
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const prescriptions = getMockPrescriptions()
     const index = prescriptions.findIndex((item) => item.id === id)
@@ -118,7 +121,8 @@ export const approvePrescription = async (id: string): Promise<Prescription> => 
   try {
     const response = await client.patch<Prescription>(`/prescriptions/${id}/approve`)
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const updated = await updatePrescription(id, { status: 'APPROVED' })
     const prescriptions = getMockPrescriptions()

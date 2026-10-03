@@ -1,5 +1,8 @@
-import { createContext, useContext, useMemo, useState, type PropsWithChildren } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react'
 import { Info } from 'lucide-react'
+import axios from 'axios'
+import i18n from '@/i18n/i18n'
+import { getApiErrorMessage } from '@/services/fallbackPolicy'
 
 interface ToastItem {
   id: number
@@ -18,7 +21,7 @@ export const ToastProvider = ({ children }: PropsWithChildren) => {
   const value = useMemo<ToastContextValue>(
     () => ({
       showToast: (message: string) => {
-        const id = Date.now()
+        const id = Date.now() + Math.random()
         setToasts((current) => [...current, { id, message }])
         window.setTimeout(() => {
           setToasts((current) => current.filter((toast) => toast.id !== id))
@@ -27,6 +30,21 @@ export const ToastProvider = ({ children }: PropsWithChildren) => {
     }),
     [],
   )
+
+  // Safety net: an awaited API call that nobody caught (e.g. a save button handler) would
+  // otherwise fail silently. Surface API failures as a toast instead.
+  useEffect(() => {
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason
+      if (reason instanceof DOMException && reason.name === 'AbortError') return
+      if (!axios.isAxiosError(reason) || axios.isCancel(reason)) return
+      // 401s are handled by the API client (session cleared + redirect to login)
+      if (reason.response?.status === 401) return
+      value.showToast(getApiErrorMessage(reason, i18n.t('network.requestFailed', 'Something went wrong. Please try again.')))
+    }
+    window.addEventListener('unhandledrejection', onUnhandledRejection)
+    return () => window.removeEventListener('unhandledrejection', onUnhandledRejection)
+  }, [value])
 
   return (
     <ToastContext.Provider value={value}>

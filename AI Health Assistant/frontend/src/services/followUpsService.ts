@@ -1,12 +1,14 @@
 import client from '@/services/apiClient'
 import type { FollowUp, FollowUpPayload } from '@/types'
 import { delay, generateId, getMockFollowUps, saveMockFollowUps } from '@/utils'
+import { assertMockFallbackAllowed } from '@/services/fallbackPolicy'
 
 export const bookFollowUp = async (data: FollowUpPayload): Promise<FollowUp> => {
   try {
     const response = await client.post<FollowUp>('/follow-ups', data)
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const followUps = getMockFollowUps()
     const next: FollowUp = {

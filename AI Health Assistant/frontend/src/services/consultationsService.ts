@@ -25,6 +25,7 @@ import {
   getCurrentPatientId,
 } from '@/utils/userScope'
 import type { Patient } from '@/types'
+import { assertMockFallbackAllowed } from '@/services/fallbackPolicy'
 
 export const submitConsultation = async (
   data: SubmitConsultationPayload,
@@ -32,7 +33,8 @@ export const submitConsultation = async (
   try {
     const response = await client.post<ConsultationSubmissionResponse>('/consultations', data)
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const consultations = getMockConsultations()
     const aiSummary = buildAiSummary(data.symptoms, data.aiAnswers)
@@ -183,7 +185,8 @@ export const updateConsultationCaseStatus = async (
       ...extra,
     })
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const consultations = getMockConsultations()
     const index = consultations.findIndex((item) => item.id === id)

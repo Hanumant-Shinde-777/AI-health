@@ -1,6 +1,7 @@
 import client from '@/services/apiClient'
 import { delay, readDoctorProfile, writeDoctorProfile, type DoctorProfileRecord } from '@/utils'
 import type { MatchedDoctor } from '@/types/doctors'
+import { assertMockFallbackAllowed } from '@/services/fallbackPolicy'
 
 export interface DoctorProfileUpdateInput {
   fullName: string
@@ -87,7 +88,8 @@ export const updateDoctorProfile = async (data: DoctorProfileUpdateInput): Promi
     const response = await client.patch<DoctorProfileRecord>('/doctor/update-profile', data)
     writeDoctorProfile(response.data)
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const current = readDoctorProfile()
     const next: DoctorProfileRecord = {
