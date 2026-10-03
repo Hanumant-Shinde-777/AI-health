@@ -1,4 +1,5 @@
 import prisma from '../config/prismaClient.js'
+import { renderPrescriptionPdf } from '../utils/prescriptionPdf.js'
 import { ApiError } from '../utils/apiError.js'
 
 const canAccess = (prescription, user) => {
@@ -82,4 +83,41 @@ export const getByConsultation = async (req, res) => {
     throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
   }
   res.json({ success: true, data: prescription })
+}
+
+/**
+ * GET /:id/pdf — branded prescription PDF.
+ * Patients can download their own approved prescriptions; doctors their own (drafts are stamped DRAFT).
+ */
+export const downloadPdf = async (req, res) => {
+  const prescription = await prisma.prescription.findUnique({
+    where: { id: req.params.id },
+    select: {
+      id: true,
+      patientId: true,
+      doctorId: true,
+      diagnosis: true,
+      medicines: true,
+      advice: true,
+      followUpDate: true,
+      status: true,
+      createdAt: true,
+      patient: { select: { fullName: true, age: true, gender: true } },
+      doctor: { select: { fullName: true, specialization: true, licenseNumber: true, clinicName: true, clinicAddress: true } },
+    },
+  })
+  if (!prescription) throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
+  if (!canAccess(prescription, req.user)) throw new ApiError(403, 'Forbidden', 'FORBIDDEN')
+  // A draft is the doctor's work in progress, not something a patient should receive
+  if (req.user.role === 'PATIENT' && prescription.status !== 'approved') {
+    throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
+  }
+
+  const pdf = await renderPrescriptionPdf(prescription)
+  const date = new Date(prescription.createdAt).toISOString().slice(0, 10)
+  res.setHeader('Content-Type', 'application/pdf')
+  res.setHeader('Content-Disposition', `attachment; filename="prescription-${date}-${prescription.id.slice(0, 8)}.pdf"`)
+  res.setHeader('Content-Length', String(pdf.length))
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.send(pdf)
 }

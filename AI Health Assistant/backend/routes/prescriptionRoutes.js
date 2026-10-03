@@ -12,6 +12,7 @@ router.post('/create', roleMiddleware('doctor'), asyncHandler(prescription.creat
 router.put('/:id/approve', roleMiddleware('doctor'), asyncHandler(prescription.approve))
 router.get('/patient/:patientId', roleMiddleware('patient'), asyncHandler(prescription.listByPatient))
 router.get('/consultation/:consultationId', roleMiddleware('doctor'), asyncHandler(prescription.getByConsultation))
+router.get('/:id/pdf', asyncHandler(prescription.downloadPdf))
 router.get('/:id', asyncHandler(prescription.getById))
 
 export default router

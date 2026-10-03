@@ -4,6 +4,7 @@ import { roleMiddleware } from '../middleware/roleMiddleware.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import * as patient from '../controllers/patientController.js'
 import * as doctor from '../controllers/doctorController.js'
+import { downloadPdf as downloadPrescriptionPdf } from '../controllers/prescriptionController.js'
 import prisma from '../config/prismaClient.js'
 import { ApiError } from '../utils/apiError.js'
 
@@ -209,6 +210,8 @@ router.get('/prescriptions', asyncHandler(async (req, res) => {
   })
   res.json(rows.map(mapPrescription))
 }))
+
+router.get('/prescriptions/:id/pdf', asyncHandler(downloadPrescriptionPdf))
 
 router.get('/prescriptions/:id', asyncHandler(async (req, res) => {
   const row = await prisma.prescription.findUnique({
