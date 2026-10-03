@@ -21,7 +21,8 @@ export const getPrescription = async (id: string): Promise<Prescription> => {
   try {
     const response = await client.get<Prescription>(`/prescriptions/${id}`)
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const patientId = getCurrentPatientId()
     const pool = patientId
@@ -39,7 +40,8 @@ export const getPrescriptions = async (): Promise<Prescription[]> => {
   try {
     const response = await client.get<Prescription[]>('/prescriptions')
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const patientId = getCurrentPatientId()
     if (!patientId) {

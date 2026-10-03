@@ -41,7 +41,8 @@ export const getDoctorProfile = async (): Promise<DoctorProfileRecord | null> =>
   try {
     const response = await client.get<DoctorProfileRecord>('/doctor/profile')
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     return null
   }
 }
@@ -74,7 +75,8 @@ export const getDoctorsBySpecialization = async (
     }
 
     return { doctors, usedFallback, effectiveSpecialization: effective }
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     return { doctors: [], usedFallback: false, effectiveSpecialization: specialization }
   }
 }
@@ -84,7 +86,8 @@ export const getDoctors = async (): Promise<Array<{ id: string; name: string }>>
   try {
     const response = await client.get<{ success: boolean; data: Array<{ id: string; fullName: string }> }>('/doctors')
     return (response.data.data ?? []).map((d) => ({ id: d.id, name: d.fullName }))
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     return []
   }
 }

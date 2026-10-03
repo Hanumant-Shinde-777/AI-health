@@ -119,7 +119,8 @@ export const getConsultations = async (): Promise<Consultation[]> => {
   try {
     const response = await client.get<Consultation[]>('/consultations')
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const patientId = getCurrentPatientId()
     if (!patientId) {
@@ -133,7 +134,8 @@ export const getConsultation = async (id: string): Promise<Consultation> => {
   try {
     const response = await client.get<Consultation>(`/consultations/${id}`)
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const consultation = getMockConsultations().find((item) => item.id === id)
     if (!consultation) {
@@ -147,7 +149,8 @@ export const getPendingConsultations = async (): Promise<Consultation[]> => {
   try {
     const response = await client.get<Consultation[]>('/consultations/pending')
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const doctorId = getCurrentDoctorId()
     if (!doctorId) {
@@ -163,7 +166,8 @@ export const getDoctorConsultations = async (): Promise<Consultation[]> => {
   try {
     const response = await client.get<Consultation[]>('/consultations/doctor')
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     const doctorId = getCurrentDoctorId()
     if (!doctorId) {

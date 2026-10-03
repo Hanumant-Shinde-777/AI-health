@@ -28,7 +28,8 @@ export const getMyFollowUps = async (): Promise<FollowUp[]> => {
   try {
     const response = await client.get<FollowUp[]>('/follow-ups/me')
     return response.data
-  } catch {
+  } catch (error) {
+    assertMockFallbackAllowed(error)
     await delay()
     return getMockFollowUps()
   }

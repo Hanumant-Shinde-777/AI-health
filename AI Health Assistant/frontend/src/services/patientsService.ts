@@ -32,7 +32,8 @@ export const getProfile = async (): Promise<Patient> => {
     try {
       const response = await client.get<Patient>('/patients/me')
       return response.data
-    } catch {
+    } catch (error) {
+      assertMockFallbackAllowed(error)
       // fall through to local fallback
     }
   }
@@ -70,7 +71,8 @@ export const getMedicalHistory = async (): Promise<MedicalHistory> => {
     try {
       const response = await client.get<MedicalHistory>('/patients/me/medical-history')
       return response.data
-    } catch {
+    } catch (error) {
+      assertMockFallbackAllowed(error)
       // fall through to local fallback
     }
   }
