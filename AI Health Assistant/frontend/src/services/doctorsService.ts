@@ -47,6 +47,12 @@ export const getDoctorProfile = async (): Promise<DoctorProfileRecord | null> =>
 }
 
 /** Fetch doctors filtered by specialization from the backend. Falls back to General Physician if none found. */
+/** All verified, available doctors (public endpoint). Throws on failure so callers can show an error state. */
+export const searchDoctors = async (): Promise<MatchedDoctor[]> => {
+  const response = await client.get<{ success: boolean; data: BackendDoctorListItem[] }>('/doctors')
+  return (response.data.data ?? []).map(mapToMatchedDoctor)
+}
+
 export const getDoctorsBySpecialization = async (
   specialization: string,
 ): Promise<{ doctors: MatchedDoctor[]; usedFallback: boolean; effectiveSpecialization: string }> => {

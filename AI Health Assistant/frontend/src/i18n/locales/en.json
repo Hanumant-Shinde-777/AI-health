@@ -846,5 +846,17 @@
       "selfHarm": "Thoughts of harming yourself"
     },
     "disclaimer": "This app cannot contact emergency services for you. Calls go through your phone."
+  },
+  "findDoctor": {
+    "title": "Find a doctor",
+    "subtitle": "Browse available doctors by name, specialty or clinic.",
+    "searchPlaceholder": "Search doctor, specialty or clinic",
+    "specialtyLabel": "Filter by specialty",
+    "loadError": "Could not load doctors. Check your connection and try again.",
+    "emptyTitle": "No doctors available right now",
+    "emptyBody": "Please check again later.",
+    "experience": "{{years}} yrs experience",
+    "fee": "Fee ₹{{fee}}",
+    "howToConsult": "To consult a doctor, describe your symptoms first — you choose your doctor on the summary screen."
   }
 }

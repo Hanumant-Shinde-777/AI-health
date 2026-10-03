@@ -36,4 +36,5 @@
   FOLLOW_UP: '/follow-up',
   HISTORY: '/history',
   EMERGENCY: '/emergency',
+  FIND_DOCTOR: '/find-doctor',
 } as const

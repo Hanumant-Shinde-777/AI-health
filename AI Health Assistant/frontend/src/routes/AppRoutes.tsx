@@ -32,6 +32,7 @@ const SubmissionSuccessPage = lazy(() => import('@/pages/patient/SubmissionSucce
 const SymptomsPage = lazy(() => import('@/pages/patient/SymptomsPage'))
 const WelcomePage = lazy(() => import('@/pages/auth/WelcomePage'))
 const EmergencyPage = lazy(() => import('@/pages/patient/EmergencyPage'))
+const FindDoctorPage = lazy(() => import('@/pages/patient/FindDoctorPage'))
 const AuthPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.AuthPage })))
 const DoctorRegistrationPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.DoctorRegistrationPage })))
 const NotificationsPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.NotificationsPage })))
@@ -249,6 +250,14 @@ const routes: RouteObject[] = [
     element: (
       <ProtectedRoute patientOnly>
         <FollowUpPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/find-doctor',
+    element: (
+      <ProtectedRoute patientOnly>
+        <FindDoctorPage />
       </ProtectedRoute>
     ),
   },
