@@ -59,6 +59,8 @@ export interface Consultation {
   doctorName?: string
   qualification?: string
   possibleCause?: string
+  /** Doctor's question to the patient when the case needs more information */
+  doctorMessage?: string
   symptomList?: string[]
   medicalHistory?: MedicalHistory
   doctorId?: string

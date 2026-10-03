@@ -23,7 +23,7 @@ import {
   type DoctorPatientsFilter,
   type DoctorStatKey,
 } from '@/utils/doctorDashboard'
-import { getUnreadCount } from '@/utils/notifications'
+import { getCombinedUnreadCount } from '@/services/notificationsService'
 
 const STAT_CARD_STYLES_LIGHT: Record<
   DoctorStatKey,
@@ -121,7 +121,7 @@ const DoctorDashboardPage = () => {
     setRefreshing(true)
     await fetchCases()
     setRefreshing(false)
-    setDoctorNotificationCount(getUnreadCount('DOCTOR'))
+    setDoctorNotificationCount(await getCombinedUnreadCount('DOCTOR'))
   }, [fetchCases])
 
   useEffect(() => {

@@ -548,5 +548,15 @@
     "title": "आपके साथ पिछली मुलाक़ातें",
     "firstVisit": "यह मरीज़ का आपके साथ पहला परामर्श है।",
     "loadError": "इस मरीज़ की पिछली मुलाक़ातें लोड नहीं हो सकीं।"
+  },
+  "notificationsServer": {
+    "newCaseTitle": "समीक्षा के लिए नया केस",
+    "newCaseBody": "{{patient}} ने आपको नया परामर्श भेजा है।",
+    "newCaseBodyCondition": "{{patient}} ने आपको नया परामर्श भेजा है · {{condition}}",
+    "doctorMessageTitle": "{{doctor}} को और जानकारी चाहिए",
+    "doctorMessageFallback": "आपके डॉक्टर का आपके केस के बारे में एक सवाल है। जवाब देने के लिए इतिहास खोलें।",
+    "prescriptionReadyTitle": "आपका पर्चा तैयार है",
+    "prescriptionReadyBody": "{{doctor}} ने आपका पर्चा मंज़ूर कर दिया है। देखने या डाउनलोड करने के लिए टैप करें।",
+    "refreshError": "नई सूचनाएँ लोड नहीं हो सकीं। इस डिवाइस पर मौजूद सूचनाएँ दिखाई जा रही हैं।"
   }
 }

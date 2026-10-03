@@ -156,7 +156,8 @@ import {
   recommendSpecialization,
 } from '@/utils/doctors'
 import { getDoctorsBySpecialization } from '@/services/doctorsService'
-import { getUnreadCount, notifyPatientNeedMoreInfo } from '@/utils/notifications'
+import { notifyPatientNeedMoreInfo } from '@/utils/notifications'
+import { getCombinedUnreadCount } from '@/services/notificationsService'
 import type { MatchedDoctor } from '@/types/doctors'
 
 const Header = ({
@@ -804,7 +805,7 @@ export const HomePage = () => {
   const [notificationCount, setNotificationCount] = useState(0)
 
   useEffect(() => {
-    setNotificationCount(getUnreadCount('PATIENT'))
+    void getCombinedUnreadCount('PATIENT').then(setNotificationCount)
   }, [])
 
   return (
@@ -2343,7 +2344,8 @@ export const DoctorConsultationPage = () => {
                 if (!consultation || !values.message.trim()) {
                   return
                 }
-                await updateConsultationCaseStatus(consultation.id, 'NEED_MORE_INFO')
+                // The message goes to the server too, so the patient sees it on their own device
+                await updateConsultationCaseStatus(consultation.id, 'NEED_MORE_INFO', { doctorMessage: values.message.trim() })
                 if (consultation.patientId) {
                   notifyPatientNeedMoreInfo({
                     patientId: consultation.patientId,

@@ -1,5 +1,6 @@
 import type { AppNotification, NotificationType } from '@/types/doctors'
 import { generateId, readStorage, storageKeys, writeStorage } from '@/utils'
+import { getAuthUserFromStorage } from '@/utils/userScope'
 
 const readNotifications = (): AppNotification[] =>
   readStorage<AppNotification[]>(storageKeys.notifications, [])
@@ -8,10 +9,13 @@ const saveNotifications = (items: AppNotification[]): void => {
   writeStorage(storageKeys.notifications, items)
 }
 
-export const getNotificationsForRole = (role: 'PATIENT' | 'DOCTOR'): AppNotification[] =>
-  readNotifications()
-    .filter((n) => n.receiverRole === role)
+/** This device's notifications for the signed-in user (not other users who used the same phone). */
+export const getNotificationsForRole = (role: 'PATIENT' | 'DOCTOR'): AppNotification[] => {
+  const userId = getAuthUserFromStorage()?.id
+  return readNotifications()
+    .filter((n) => n.receiverRole === role && (!userId || !n.receiverId || n.receiverId === userId))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
 
 export const getUnreadCount = (role: 'PATIENT' | 'DOCTOR'): number =>
   getNotificationsForRole(role).filter((n) => !n.isRead).length
@@ -103,7 +107,8 @@ export const notifyPatientNeedMoreInfo = (params: {
     receiverRole: 'PATIENT',
     title: 'Doctor needs more information',
     body: `${params.doctorName}: ${snippet}`,
-    route: `/case-message/${params.caseId}`,
+    // There is no /case-message route; History shows the case with its Reply to Doctor action
+    route: '/history',
   })
 }
 

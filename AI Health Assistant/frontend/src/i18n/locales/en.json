@@ -1039,5 +1039,15 @@
     "title": "Previous visits with you",
     "firstVisit": "This is the patient's first consultation with you.",
     "loadError": "Could not load this patient's previous visits."
+  },
+  "notificationsServer": {
+    "newCaseTitle": "New case to review",
+    "newCaseBody": "{{patient}} sent you a new consultation.",
+    "newCaseBodyCondition": "{{patient}} sent you a new consultation · {{condition}}",
+    "doctorMessageTitle": "{{doctor}} needs more information",
+    "doctorMessageFallback": "Your doctor has a question about your case. Open History to reply.",
+    "prescriptionReadyTitle": "Your prescription is ready",
+    "prescriptionReadyBody": "{{doctor}} approved your prescription. Tap to view or download it.",
+    "refreshError": "Couldn't load the latest notifications. Showing what's on this device."
   }
 }

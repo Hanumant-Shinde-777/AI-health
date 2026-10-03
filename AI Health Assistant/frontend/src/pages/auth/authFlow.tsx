@@ -67,11 +67,10 @@ import {
   writeRegisterDraft,
 } from '@/utils'
 import type { DoctorProfileRecord, PatientExtendedProfile, RegisterDraft } from '@/utils'
-import {
-  getNotificationsForRole,
-  markAllRead,
-  markNotificationRead,
-} from '@/utils/notifications'
+import { getNotificationsForRole } from '@/utils/notifications'
+import { loadNotifications, markAllNotificationsRead, markNotificationRead } from '@/services/notificationsService'
+import ErrorAlert from '@/components/feedback/ErrorAlert'
+import { SkeletonCard } from '@/components/feedback/Skeleton'
 import {
   findPatientAccount,
   registerPatientAccount,
@@ -1498,9 +1497,25 @@ export const NotificationsPage = ({ role: roleProp }: { role?: 'PATIENT' | 'DOCT
   const navigate = useNavigate()
   const authRole = useAppSelector((state) => state.auth.user?.role)
   const role = roleProp ?? (authRole === 'DOCTOR' ? 'DOCTOR' : 'PATIENT')
+  // This device's notifications show instantly; server ones (from every device) are merged in
   const [items, setItems] = useState<AppNotification[]>(() => getNotificationsForRole(role))
+  const [loading, setLoading] = useState(true)
+  const [serverFailed, setServerFailed] = useState(false)
 
-  const refresh = () => setItems(getNotificationsForRole(role))
+  const load = async () => {
+    setLoading(true)
+    const result = await loadNotifications(role)
+    setItems(result.items)
+    setServerFailed(result.serverFailed)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    void load()
+  }, [role])
+
+  const markRead = (id: string) =>
+    setItems((current) => current.map((n) => (n.notificationId === id ? { ...n, isRead: true } : n)))
   const unreadCount = items.filter((item) => !item.isRead).length
 
   return (
@@ -1511,13 +1526,30 @@ export const NotificationsPage = ({ role: roleProp }: { role?: 'PATIENT' | 'DOCT
           onBack={() => navigate(role === 'DOCTOR' ? '/doctor-dashboard' : '/home')}
           right={
             unreadCount > 0 ? (
-              <button type="button" className="text-sm font-semibold text-primary" onClick={() => { markAllRead(role); refresh() }}>
+              <button type="button" className="text-sm font-semibold text-primary" onClick={() => { markAllNotificationsRead(role, items); setItems((current) => current.map((n) => ({ ...n, isRead: true }))) }}>
                 {t('notifications.markAllRead')}
               </button>
             ) : null
           }
         />
-        {items.length ? (
+        {serverFailed ? (
+          <ErrorAlert
+            className="mb-3"
+            action={
+              <button type="button" className="text-sm font-semibold text-primary" onClick={() => void load()}>
+                {t('common.retry') || 'Retry'}
+              </button>
+            }
+          >
+            {t('notificationsServer.refreshError')}
+          </ErrorAlert>
+        ) : null}
+        {loading && items.length === 0 ? (
+          <div className="space-y-2.5">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : items.length ? (
           <div className="space-y-2.5">
             {items.map((item) => (
               <button
@@ -1525,7 +1557,7 @@ export const NotificationsPage = ({ role: roleProp }: { role?: 'PATIENT' | 'DOCT
                 type="button"
                 onClick={() => {
                   markNotificationRead(item.notificationId)
-                  refresh()
+                  markRead(item.notificationId)
                   if (item.route) navigate(item.route)
                 }}
                 className={classNames(
