@@ -11,7 +11,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   AlertTriangle,
   Apple,
-  ArrowLeft,
   Bell,
   Calendar,
   CheckCircle,
@@ -64,9 +63,17 @@ import {
   updatePrescription,
 } from '@/services/prescriptionsService'
 import LoadingSpinner from '@/components/feedback/LoadingSpinner'
+import AnalysisProgress, { type AnalysisStage } from '@/components/feedback/AnalysisProgress'
+import Skeleton, { PageSkeleton, SkeletonCard } from '@/components/feedback/Skeleton'
 import ErrorAlert from '@/components/feedback/ErrorAlert'
 import ThinkingIndicator from '@/components/feedback/ThinkingIndicator'
 import ChatBubble from '@/components/ui/ChatBubble'
+import BackButton from '@/components/ui/BackButton'
+import { AppearanceCard } from '@/components/ui/ThemeToggle'
+import HistoryFilters from '@/components/ui/HistoryFilters'
+import ReportActions, { PrintHeader } from '@/components/ui/ReportActions'
+import { buildShareText } from '@/utils/healthReport'
+import { filterConsultations, filterPrescriptions, type RiskFilter } from '@/utils/historyFilters'
 import RiskBadge from '@/components/ui/RiskBadge'
 import { useToast } from '@/components/feedback/Toast'
 import { AnswerChip } from '@/components/ui/AnswerChip'
@@ -163,9 +170,7 @@ const Header = ({
   <div className="mb-6 flex items-start justify-between gap-3">
     <div className="flex items-start gap-3">
       {onBack ? (
-        <button type="button" onClick={onBack} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
-          <ArrowLeft size={18} />
-        </button>
+        <BackButton onClick={onBack} />
       ) : null}
       <div>
         <h1 className="text-[22px] font-bold leading-tight tracking-tight text-foreground sm:text-2xl">{title}</h1>
@@ -981,12 +986,15 @@ export const SymptomsPage = () => {
   }
 
   const [analyzing, setAnalyzing] = useState(false)
+  // Which of the two sequential requests below is in flight (drives the progress UI only)
+  const [analysisStage, setAnalysisStage] = useState<AnalysisStage>('analyzing')
 
   const goNext = async (raw: string) => {
     const trimmed = raw.trim()
     if (!trimmed) return
     dispatch(setSymptoms(trimmed))
     setAnalyzing(true)
+    setAnalysisStage('analyzing')
     try {
       const result = await analyzeSymptoms(trimmed)
       if (result.isEmergency) {
@@ -1008,6 +1016,7 @@ export const SymptomsPage = () => {
         return
       }
 
+      setAnalysisStage('questions')
       const first = await fetchNextQuestion(trimmed, [])
       if (first.done === false && first.question) {
         dispatch(
@@ -1109,6 +1118,7 @@ export const SymptomsPage = () => {
                 type="button"
                 onClick={isListening ? stopListening : startListening}
                 aria-pressed={isListening}
+                aria-label={isListening ? t('a11y.stopRecording', 'Stop recording') : t('a11y.startRecording', 'Start recording')}
                 className={classNames(
                   'relative flex h-24 w-24 items-center justify-center rounded-full text-white transition-all duration-300 active:scale-95',
                   isListening
@@ -1172,6 +1182,8 @@ export const SymptomsPage = () => {
             t('common.next').trim()
           )}
         </button>
+
+        {analyzing ? <AnalysisProgress stage={analysisStage} /> : null}
       </div>
     </Layout>
   )
@@ -1718,6 +1730,7 @@ export const AdditionalNotesPage = () => {
                 type="button"
                 onClick={isListening ? stopListening : startListening}
                 aria-pressed={isListening}
+                aria-label={isListening ? t('a11y.stopRecording', 'Stop recording') : t('a11y.startRecording', 'Start recording')}
                 className={classNames(
                   'relative flex h-24 w-24 items-center justify-center rounded-full text-white transition-all duration-300 active:scale-95',
                   isListening
@@ -1780,6 +1793,7 @@ export const SummaryPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
+  const { showToast } = useToast()
   const consultation = useAppSelector((state) => state.consultation)
   const profile = useAppSelector((state) => state.patient.profile)
   const [loading, setLoading] = useState(false)
@@ -1888,7 +1902,10 @@ export const SummaryPage = () => {
   return (
     <Layout>
       <div className="page-padding space-y-5 bg-background">
-        <Header title={t('summary.title')} onBack={() => navigate(-1)} />
+        <div className="print:hidden">
+          <Header title={t('summary.title')} onBack={() => navigate(-1)} />
+        </div>
+        <PrintHeader patientName={profile?.fullName} />
 
         <div className="card space-y-4 p-5">
           <h2 className="text-lg font-semibold text-foreground">{t('summary.cardTitle')}</h2>
@@ -1902,21 +1919,21 @@ export const SummaryPage = () => {
 
         {disease ? (
           <div className="card space-y-3 p-5">
-            <h3 className="text-sm font-semibold text-foreground">AI Analysis</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('report.aiAnalysis', 'AI Analysis')}</h3>
             <div className="space-y-2">
               <div className="flex items-center justify-between rounded-app bg-primary/15 px-3 py-2">
-                <span className="text-sm text-muted">Possible Condition</span>
+                <span className="text-sm text-muted">{t('report.possibleCondition', 'Possible Condition')}</span>
                 <span className="text-sm font-semibold text-primary">{disease}</span>
               </div>
               {confidence > 0 ? (
                 <div className="flex items-center justify-between rounded-app bg-success/10 px-3 py-2">
-                  <span className="text-sm text-muted">Confidence</span>
+                  <span className="text-sm text-muted">{t('report.confidence', 'Confidence')}</span>
                   <span className="text-sm font-semibold text-success">{confidence}%</span>
                 </div>
               ) : null}
               {aiSpecialization ? (
                 <div className="flex items-center justify-between rounded-app bg-warning/10 px-3 py-2">
-                  <span className="text-sm text-muted">AI Recommended Specialist</span>
+                  <span className="text-sm text-muted">{t('report.aiSpecialist', 'AI Recommended Specialist')}</span>
                   <span className="text-sm font-semibold text-warning">{aiSpecialization}</span>
                 </div>
               ) : null}
@@ -1929,6 +1946,23 @@ export const SummaryPage = () => {
           <p className="text-sm text-muted">{t('summary.doctorReview')}</p>
           <p className="text-xs italic text-muted">{'\u26A0\uFE0F'} {t('summary.disclaimer')}</p>
         </div>
+
+        <ReportActions
+          title={t('report.title', 'Health Summary Report')}
+          getShareText={() =>
+            buildShareText({
+              title: t('report.title', 'Health Summary Report'),
+              lines: summaryBullets,
+              condition: disease || undefined,
+              conditionLabel: t('report.possibleCondition', 'Possible Condition'),
+              riskLabel: t('report.risk', 'Risk level'),
+              risk: t(`historyFilters.${riskLevel.toLowerCase()}`, riskLevel),
+              specialistLabel: t('summary.recommendedSpecialist'),
+              specialist: aiSpecialization || recommendedSpecialization || undefined,
+              disclaimer: t('summary.disclaimer'),
+            })
+          }
+        />
 
         <div className="card space-y-3 p-5">
           <h3 className="text-sm font-semibold text-foreground">{t('summary.recommendedSpecialist')}</h3>
@@ -1946,9 +1980,11 @@ export const SummaryPage = () => {
           </div>
         </div>
 
+        <div className="print:hidden">
         {doctorsLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <LoadingSpinner size={28} />
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-16 w-full rounded-card" />
           </div>
         ) : doctorsError ? (
           <p className="rounded-app bg-danger/10 px-4 py-3 text-center text-sm text-danger">
@@ -1971,14 +2007,15 @@ export const SummaryPage = () => {
             requestedSpecialization={recommendedSpecialization}
           />
         )}
+        </div>
 
         {showSelectHint ? (
-          <p className="text-center text-xs text-danger">{t('summary.selectDoctorFirst')}</p>
+          <p className="text-center text-xs text-danger print:hidden">{t('summary.selectDoctorFirst')}</p>
         ) : null}
 
         <button
           type="button"
-          className={classNames('btn-primary', !selectedDoctor && !loading && 'opacity-60')}
+          className={classNames('btn-primary print:hidden', !selectedDoctor && !loading && 'opacity-60')}
           disabled={loading || !selectedDoctor}
           title={!selectedDoctor ? t('summary.selectDoctorFirst') : undefined}
           onClick={async () => {
@@ -2002,6 +2039,8 @@ export const SummaryPage = () => {
               navigate('/submission-success', {
                 state: { doctor: selectedDoctor, consultationId: response.consultationId },
               })
+            } catch {
+              showToast(t('report.submitFailed', 'Could not submit to the doctor. Please try again.'))
             } finally {
               setLoading(false)
             }
@@ -2194,7 +2233,7 @@ export const DoctorConsultationPage = () => {
   if (loading) {
     return (
       <Layout hideNav>
-        <LoadingSpinner className="min-h-screen" />
+        <PageSkeleton />
       </Layout>
     )
   }
@@ -2539,7 +2578,7 @@ export const EditPrescriptionPage = () => {
   if (loading) {
     return (
       <Layout hideNav>
-        <LoadingSpinner className="min-h-screen" />
+        <PageSkeleton />
       </Layout>
     )
   }
@@ -2721,7 +2760,7 @@ export const PatientPrescriptionPage = () => {
   if (loading) {
     return (
       <Layout>
-        <LoadingSpinner className="min-h-screen" />
+        <PageSkeleton />
       </Layout>
     )
   }
@@ -2752,7 +2791,7 @@ export const PatientPrescriptionPage = () => {
           title={t('patientPrescription.title')}
           onBack={() => window.history.back()}
           right={
-            <button type="button" onClick={() => void handleDownload()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
+            <button type="button" onClick={() => void handleDownload()} aria-label={t('pdfShare.downloadPdf')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
               <Download size={18} />
             </button>
           }
@@ -2830,7 +2869,7 @@ export const PdfSharePage = () => {
   if (loading) {
     return (
       <Layout>
-        <LoadingSpinner className="min-h-screen" />
+        <PageSkeleton />
       </Layout>
     )
   }
@@ -2900,13 +2939,17 @@ export const PdfSharePage = () => {
             type="button"
             className="btn-primary"
             onClick={async () => {
-              const blob = await downloadPdf(prescription.id)
-              const url = URL.createObjectURL(blob)
-              const anchor = document.createElement('a')
-              anchor.href = url
-              anchor.download = `${prescription.id}.pdf`
-              anchor.click()
-              URL.revokeObjectURL(url)
+              try {
+                const blob = await downloadPdf(prescription.id)
+                const url = URL.createObjectURL(blob)
+                const anchor = document.createElement('a')
+                anchor.href = url
+                anchor.download = `${prescription.id}.pdf`
+                anchor.click()
+                URL.revokeObjectURL(url)
+              } catch {
+                showToast(t('report.downloadFailed', 'Could not download the PDF. Please try again.'))
+              }
             }}
           >
             {t('pdfShare.downloadPdf')}
@@ -2916,15 +2959,24 @@ export const PdfSharePage = () => {
             className="btn-secondary"
             onClick={async () => {
               if (navigator.share) {
-                await navigator.share({
-                  title: t('pdfShare.title'),
-                  text: prescription.diagnosis,
-                  url: window.location.href,
-                })
-                return
+                try {
+                  await navigator.share({
+                    title: t('pdfShare.title'),
+                    text: prescription.diagnosis,
+                    url: window.location.href,
+                  })
+                  return
+                } catch (error) {
+                  // User closed the share sheet — nothing to report
+                  if (error instanceof DOMException && error.name === 'AbortError') return
+                }
               }
-              await navigator.clipboard.writeText(window.location.href)
-              showToast(t('pdfShare.shareSuccess'))
+              try {
+                await navigator.clipboard.writeText(window.location.href)
+                showToast(t('pdfShare.shareSuccess'))
+              } catch {
+                showToast(t('report.shareFailed', 'Could not share the summary. Please try again.'))
+              }
             }}
           >
             {t('pdfShare.share')}
@@ -3085,6 +3137,22 @@ export const FollowUpPage = () => {
   )
 }
 
+const NoMatches = ({ onClear }: { onClear: () => void }) => {
+  const { t } = useTranslation()
+  return (
+    <div className="card flex flex-col items-center gap-3 p-8 text-center animate-fade-in">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Search size={22} />
+      </div>
+      <p className="font-semibold text-foreground">{t('historyFilters.noMatches', 'No matching results')}</p>
+      <p className="text-sm text-muted">{t('historyFilters.noMatchesHint', 'Try a different search or clear the filters.')}</p>
+      <button type="button" className="mt-1 text-sm font-semibold text-primary" onClick={onClear}>
+        {t('historyFilters.clearFilters', 'Clear filters')}
+      </button>
+    </div>
+  )
+}
+
 export const HistoryPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -3094,6 +3162,26 @@ export const HistoryPage = () => {
   const [consultations, setConsultationsState] = useState<Consultation[]>([])
   const [prescriptions, setPrescriptionsState] = useState<Prescription[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [query, setQuery] = useState('')
+  const [riskFilter, setRiskFilter] = useState<RiskFilter>('ALL')
+
+  const filteredConsultations = useMemo(
+    () => filterConsultations(consultations, query, riskFilter),
+    [consultations, query, riskFilter],
+  )
+  const approvedPrescriptions = useMemo(
+    () => prescriptions.filter((item) => item.status === 'APPROVED'),
+    [prescriptions],
+  )
+  const filteredPrescriptions = useMemo(
+    () => filterPrescriptions(approvedPrescriptions, query),
+    [approvedPrescriptions, query],
+  )
+  const clearFilters = () => {
+    setQuery('')
+    setRiskFilter('ALL')
+  }
 
   const prescriptionByConsultation = useMemo(() => {
     const map = new Map<string, Prescription>()
@@ -3126,18 +3214,23 @@ export const HistoryPage = () => {
     setPrescriptionsState(prescriptionItems)
   }
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      try {
-        await loadHistory()
-      } finally {
-        setLoading(false)
-      }
+  const load = async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      await loadHistory()
+    } catch {
+      setLoadError(true)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     void load()
     const timer = window.setInterval(() => {
-      void loadHistory()
+      // Background refresh: keep showing the last good data if it fails
+      loadHistory().catch(() => undefined)
     }, 30000)
     return () => window.clearInterval(timer)
   }, [])
@@ -3165,12 +3258,42 @@ export const HistoryPage = () => {
           ))}
         </div>
 
-        {loading ? <LoadingSpinner className="py-10" /> : null}
+        {!loading && (tab === 'consultations' ? consultations.length > 0 : approvedPrescriptions.length > 0) ? (
+          <HistoryFilters
+            query={query}
+            onQueryChange={setQuery}
+            risk={tab === 'consultations' ? riskFilter : undefined}
+            onRiskChange={tab === 'consultations' ? setRiskFilter : undefined}
+            resultCount={tab === 'consultations' ? filteredConsultations.length : filteredPrescriptions.length}
+            totalCount={tab === 'consultations' ? consultations.length : approvedPrescriptions.length}
+          />
+        ) : null}
+
+        {loadError && !loading ? (
+          <ErrorAlert
+            action={
+              <button type="button" className="text-sm font-semibold text-primary" onClick={() => void load()}>
+                {t('common.retry') || 'Retry'}
+              </button>
+            }
+          >
+            {t('common.loadError')}
+          </ErrorAlert>
+        ) : null}
+
+        {loading ? (
+          <div className="space-y-3">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : null}
 
         {!loading && tab === 'consultations' ? (
           consultations.length ? (
+            filteredConsultations.length ? (
             <div className="space-y-3">
-              {consultations.map((item) => (
+              {filteredConsultations.map((item) => (
                 <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all hover:shadow-card-hover">
                   <div className="border-l-4 border-primary p-4">
                     <p className="text-xs font-medium text-muted">{formatDate(item.createdAt)}</p>
@@ -3226,15 +3349,19 @@ export const HistoryPage = () => {
                 </div>
               ))}
             </div>
-          ) : (
+            ) : (
+              <NoMatches onClear={clearFilters} />
+            )
+          ) : loadError ? null : (
             <EmptyState icon={<ClipboardList size={36} className="text-primary" />} text={t('history.noConsultations')} />
           )
         ) : null}
 
         {!loading && tab === 'prescriptions' ? (
-          prescriptions.filter((item) => item.status === 'APPROVED').length ? (
+          approvedPrescriptions.length ? (
+            filteredPrescriptions.length ? (
             <div className="space-y-3">
-              {prescriptions.filter((item) => item.status === 'APPROVED').map((item) => (
+              {filteredPrescriptions.map((item) => (
                 <div key={item.id} className="card p-4">
                   <p className="text-sm text-subtle">{formatDate(item.dateTime ?? getNowIso())}</p>
                   <p className="mt-1 font-medium">{item.diagnosis}</p>
@@ -3256,7 +3383,10 @@ export const HistoryPage = () => {
                 </div>
               ))}
             </div>
-          ) : (
+            ) : (
+              <NoMatches onClear={clearFilters} />
+            )
+          ) : loadError ? null : (
             <div className="flex flex-col items-center py-16 text-center">
               <FileText size={48} className="mb-3 text-primary/30" strokeWidth={1.5} />
               <p className="font-medium text-foreground">{t('history.noPrescriptions')}</p>
@@ -3804,6 +3934,8 @@ export const DoctorProfilePage = () => {
             />
           </button>
         </div>
+
+        <AppearanceCard />
 
         <button
           type="button"

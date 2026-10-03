@@ -760,5 +760,62 @@
     "unknown": "Unknown",
     "none": "—",
     "loadError": "Failed to load data. Please try again."
+  },
+  "errors": {
+    "genericTitle": "Something went wrong",
+    "genericBody": "An unexpected error occurred. Please try again.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you're looking for doesn't exist.",
+    "updateTitle": "A new version is available",
+    "updateBody": "Reload the page to get the latest version of the app.",
+    "goHome": "Home",
+    "reload": "Reload"
+  },
+  "theme": {
+    "title": "Appearance",
+    "description": "Choose how the app looks on this device.",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "analysisProgress": {
+    "analyzing": "Checking your symptoms",
+    "questions": "Preparing follow-up questions",
+    "hint": "This usually takes a few seconds."
+  },
+  "historyFilters": {
+    "searchPlaceholder": "Search condition, doctor or medicine",
+    "searchLabel": "Search history",
+    "clearSearch": "Clear search",
+    "riskLabel": "Filter by risk",
+    "all": "All",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "results": "{{count}} of {{total}} shown",
+    "noMatches": "No matching results",
+    "noMatchesHint": "Try a different search or clear the filters.",
+    "clearFilters": "Clear filters"
+  },
+  "report": {
+    "title": "Health Summary Report",
+    "savePdf": "Save as PDF",
+    "share": "Share",
+    "copied": "Summary copied to clipboard",
+    "shareFailed": "Could not share the summary. Please try again.",
+    "downloadFailed": "Could not download the PDF. Please try again.",
+    "submitFailed": "Could not submit to the doctor. Please try again.",
+    "patient": "Patient",
+    "generated": "Generated",
+    "aiAnalysis": "AI Analysis",
+    "possibleCondition": "Possible Condition",
+    "confidence": "Confidence",
+    "aiSpecialist": "AI Recommended Specialist",
+    "risk": "Risk level"
+  },
+  "a11y": {
+    "startRecording": "Start recording",
+    "stopRecording": "Stop recording",
+    "edit": "Edit"
   }
 }

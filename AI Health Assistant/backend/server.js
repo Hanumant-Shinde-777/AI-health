@@ -12,8 +12,27 @@ import legacyRoutes from './routes/legacyRoutes.js'
 import followUpRoutes from './routes/followUpRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
+import { rateLimit } from './middleware/rateLimitMiddleware.js'
+import { securityHeaders } from './middleware/securityHeaders.js'
 
 const app = express()
+app.disable('x-powered-by')
+if (env.TRUST_PROXY) {
+  app.set('trust proxy', /^\d+$/.test(env.TRUST_PROXY) ? Number(env.TRUST_PROXY) : env.TRUST_PROXY)
+}
+
+const authLimiter = rateLimit({
+  name: 'auth',
+  windowMs: env.RATE_LIMIT_AUTH_WINDOW_MINUTES * 60 * 1000,
+  max: env.RATE_LIMIT_AUTH_MAX,
+  message: 'Too many sign-in attempts. Please wait a few minutes and try again.',
+})
+const aiLimiter = rateLimit({
+  name: 'ai',
+  windowMs: env.RATE_LIMIT_AI_WINDOW_MINUTES * 60 * 1000,
+  max: env.RATE_LIMIT_AI_MAX,
+  message: 'Too many AI requests. Please wait a moment and try again.',
+})
 
 const corsOptions = {
   origin(origin, callback) {
@@ -29,6 +48,7 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 }
 
+app.use(securityHeaders)
 app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
 app.use(express.json({ limit: '2mb' }))
@@ -38,7 +58,7 @@ app.get('/api/health', (_req, res) => {
 })
 
 // Spec routes
-app.use('/api/auth', authRoutes)
+app.use('/api/auth', authLimiter, authRoutes)
 app.use('/api/patient', patientRoutes)
 app.use('/api/doctor', doctorRoutes)
 app.use('/api/consultation', consultationRoutes)
@@ -51,7 +71,7 @@ app.get('/api/doctors', asyncHandler(listDoctors))
 app.use('/api/follow-ups', followUpRoutes)
 
 // AI Orchestrator routes (no auth required)
-app.use('/api/ai', aiRoutes)
+app.use('/api/ai', aiLimiter, aiRoutes)
 
 // Frontend legacy paths (/api/patients, /api/consultations, …)
 app.use('/api', legacyRoutes)

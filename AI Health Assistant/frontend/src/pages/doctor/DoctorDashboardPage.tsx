@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useTheme } from '@/context/ThemeContext'
 import LoadingSpinner from '@/components/feedback/LoadingSpinner'
 import RiskBadge from '@/components/ui/RiskBadge'
 import Layout from '@/layouts/MainLayout'
@@ -24,7 +25,45 @@ import {
 } from '@/utils/doctorDashboard'
 import { getUnreadCount } from '@/utils/notifications'
 
-const STAT_CARD_STYLES: Record<
+const STAT_CARD_STYLES_LIGHT: Record<
+  DoctorStatKey,
+  { gradient: string; labelColor: string; countColor: string; border: string; activeBorder: string; glow: string }
+> = {
+  pending: {
+    gradient: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+    labelColor: '#92400E',
+    countColor: '#D97706',
+    border: '#FDE68A',
+    activeBorder: '#F59E0B',
+    glow: 'rgba(245,158,11,0.18)',
+  },
+  reviewed: {
+    gradient: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+    labelColor: '#065F46',
+    countColor: '#059669',
+    border: '#A7F3D0',
+    activeBorder: '#10B981',
+    glow: 'rgba(16,185,129,0.18)',
+  },
+  today: {
+    gradient: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+    labelColor: '#1E40AF',
+    countColor: '#2563EB',
+    border: '#BFDBFE',
+    activeBorder: '#3B82F6',
+    glow: 'rgba(59,130,246,0.18)',
+  },
+  total: {
+    gradient: 'linear-gradient(135deg, #F8FAFF 0%, #EEF2FF 100%)',
+    labelColor: '#374151',
+    countColor: '#1A73E8',
+    border: '#E0E7FF',
+    activeBorder: '#818CF8',
+    glow: 'rgba(129,140,248,0.18)',
+  },
+}
+
+const STAT_CARD_STYLES_DARK: Record<
   DoctorStatKey,
   { gradient: string; labelColor: string; countColor: string; border: string; activeBorder: string; glow: string }
 > = {
@@ -64,6 +103,8 @@ const STAT_CARD_STYLES: Record<
 
 const DoctorDashboardPage = () => {
   const { t } = useTranslation()
+  const { resolvedTheme } = useTheme()
+  const statStyles = resolvedTheme === 'light' ? STAT_CARD_STYLES_LIGHT : STAT_CARD_STYLES_DARK
   const navigate = useNavigate()
   const location = useLocation()
   const [docProfile, setDocProfile] = useState(() => readDoctorProfile())
@@ -204,7 +245,7 @@ const DoctorDashboardPage = () => {
                 <div key={index} className="h-[76px] animate-pulse rounded-xl bg-border" />
               ))
             : statEntries.map(({ key, label, count }) => {
-                const style = STAT_CARD_STYLES[key]
+                const style = statStyles[key]
                 const isActive = activeStat === key
                 return (
                   <button

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import CaseStatusBadge from '@/components/ui/CaseStatusBadge'
 import FormField from '@/components/forms/FormField'
-import LoadingSpinner from '@/components/feedback/LoadingSpinner'
+import { SkeletonCard } from '@/components/feedback/Skeleton'
 import RiskBadge from '@/components/ui/RiskBadge'
 import Layout from '@/layouts/MainLayout'
 import { useDoctorDashboardStore } from '@/store/slices/doctorDashboardStore'
@@ -90,7 +90,7 @@ const DoctorPatientsPage = () => {
         <h1 className="text-xl font-bold text-foreground">{t('doctorPatients.title')}</h1>
 
         {todayOnly ? (
-          <span className="inline-flex rounded-full bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-300">
+          <span className="inline-flex rounded-full bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-700 dark:text-sky-300">
             {t('doctorPatients.filterToday')}
           </span>
         ) : null}
@@ -133,7 +133,13 @@ const DoctorPatientsPage = () => {
           </div>
         </FormField>
 
-        {isLoading && filtered.length === 0 ? <LoadingSpinner className="py-10" /> : null}
+        {isLoading && filtered.length === 0 ? (
+          <div className="space-y-3">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : null}
 
         <div className="space-y-3 pb-4">
           {filtered.map((item) => {
