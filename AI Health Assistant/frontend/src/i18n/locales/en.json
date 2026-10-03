@@ -777,5 +777,10 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "analysisProgress": {
+    "analyzing": "Checking your symptoms",
+    "questions": "Preparing follow-up questions",
+    "hint": "This usually takes a few seconds."
   }
 }

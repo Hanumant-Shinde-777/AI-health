@@ -64,6 +64,8 @@ import {
   updatePrescription,
 } from '@/services/prescriptionsService'
 import LoadingSpinner from '@/components/feedback/LoadingSpinner'
+import AnalysisProgress, { type AnalysisStage } from '@/components/feedback/AnalysisProgress'
+import Skeleton, { PageSkeleton, SkeletonCard } from '@/components/feedback/Skeleton'
 import ErrorAlert from '@/components/feedback/ErrorAlert'
 import ThinkingIndicator from '@/components/feedback/ThinkingIndicator'
 import ChatBubble from '@/components/ui/ChatBubble'
@@ -982,12 +984,15 @@ export const SymptomsPage = () => {
   }
 
   const [analyzing, setAnalyzing] = useState(false)
+  // Which of the two sequential requests below is in flight (drives the progress UI only)
+  const [analysisStage, setAnalysisStage] = useState<AnalysisStage>('analyzing')
 
   const goNext = async (raw: string) => {
     const trimmed = raw.trim()
     if (!trimmed) return
     dispatch(setSymptoms(trimmed))
     setAnalyzing(true)
+    setAnalysisStage('analyzing')
     try {
       const result = await analyzeSymptoms(trimmed)
       if (result.isEmergency) {
@@ -1009,6 +1014,7 @@ export const SymptomsPage = () => {
         return
       }
 
+      setAnalysisStage('questions')
       const first = await fetchNextQuestion(trimmed, [])
       if (first.done === false && first.question) {
         dispatch(
@@ -1173,6 +1179,8 @@ export const SymptomsPage = () => {
             t('common.next').trim()
           )}
         </button>
+
+        {analyzing ? <AnalysisProgress stage={analysisStage} /> : null}
       </div>
     </Layout>
   )
@@ -1948,8 +1956,9 @@ export const SummaryPage = () => {
         </div>
 
         {doctorsLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <LoadingSpinner size={28} />
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-16 w-full rounded-card" />
           </div>
         ) : doctorsError ? (
           <p className="rounded-app bg-danger/10 px-4 py-3 text-center text-sm text-danger">
@@ -2195,7 +2204,7 @@ export const DoctorConsultationPage = () => {
   if (loading) {
     return (
       <Layout hideNav>
-        <LoadingSpinner className="min-h-screen" />
+        <PageSkeleton />
       </Layout>
     )
   }
@@ -2540,7 +2549,7 @@ export const EditPrescriptionPage = () => {
   if (loading) {
     return (
       <Layout hideNav>
-        <LoadingSpinner className="min-h-screen" />
+        <PageSkeleton />
       </Layout>
     )
   }
@@ -2722,7 +2731,7 @@ export const PatientPrescriptionPage = () => {
   if (loading) {
     return (
       <Layout>
-        <LoadingSpinner className="min-h-screen" />
+        <PageSkeleton />
       </Layout>
     )
   }
@@ -2831,7 +2840,7 @@ export const PdfSharePage = () => {
   if (loading) {
     return (
       <Layout>
-        <LoadingSpinner className="min-h-screen" />
+        <PageSkeleton />
       </Layout>
     )
   }
@@ -3166,7 +3175,13 @@ export const HistoryPage = () => {
           ))}
         </div>
 
-        {loading ? <LoadingSpinner className="py-10" /> : null}
+        {loading ? (
+          <div className="space-y-3">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : null}
 
         {!loading && tab === 'consultations' ? (
           consultations.length ? (
