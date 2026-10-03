@@ -1,41 +1,51 @@
-﻿import { createBrowserRouter, Navigate } from 'react-router-dom'
+﻿import { lazy, Suspense } from 'react'
+import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router-dom'
 import ProtectedRoute from '@/routes/PrivateRoute'
-import AdditionalNotesPage from '@/pages/patient/AdditionalNotesPage'
-import AiQuestionsPage from '@/pages/patient/AiQuestionsPage'
-import CreatePrescriptionPage from '@/pages/doctor/CreatePrescriptionPage'
-import DoctorCalendarPage from '@/pages/doctor/DoctorCalendarPage'
-import DoctorConsultationPage from '@/pages/doctor/DoctorConsultationPage'
-import DoctorDashboardPage from '@/pages/doctor/DoctorDashboardPage'
-import DoctorPatientsPage from '@/pages/doctor/DoctorPatientsPage'
-import DoctorProfilePage from '@/pages/doctor/DoctorProfilePage'
-import EditPrescriptionPage from '@/pages/doctor/EditPrescriptionPage'
-import FollowUpPage from '@/pages/patient/FollowUpPage'
-import HistoryPage from '@/pages/patient/HistoryPage'
-import HomePage from '@/pages/patient/HomePage'
-import LanguagePage from '@/pages/auth/LanguagePage'
-import LoginPage from '@/pages/auth/LoginPage'
-import MedicalHistoryPage from '@/pages/patient/MedicalHistoryPage'
-import MoreQuestionsPage from '@/pages/patient/MoreQuestionsPage'
-import OtpPage from '@/pages/auth/OtpPage'
-import PatientPrescriptionPage from '@/pages/patient/PatientPrescriptionPage'
-import PatientProfilePage from '@/pages/patient/PatientProfilePage'
-import PdfSharePage from '@/pages/patient/PdfSharePage'
-import PrescriptionApprovedPage from '@/pages/doctor/PrescriptionApprovedPage'
-import SummaryPage from '@/pages/patient/SummaryPage'
-import SubmissionSuccessPage from '@/pages/patient/SubmissionSuccessPage'
-import SymptomsPage from '@/pages/patient/SymptomsPage'
-import WelcomePage from '@/pages/auth/WelcomePage'
 import ErrorBoundary from '@/components/feedback/ErrorBoundary'
-import {
-  AuthPage,
-  DoctorRegistrationPage,
-  NotificationsPage,
-  PatientMyProfilePage,
-  PatientRegistrationPage,
-  RoleSelectionPage,
-} from '@/pages/auth/authFlow'
+import RouteErrorPage from '@/components/feedback/RouteErrorPage'
+import { PageSkeleton } from '@/components/feedback/Skeleton'
 
-export const router = createBrowserRouter([
+// Pages load on demand so the first paint only needs the app shell
+const AdditionalNotesPage = lazy(() => import('@/pages/patient/AdditionalNotesPage'))
+const AiQuestionsPage = lazy(() => import('@/pages/patient/AiQuestionsPage'))
+const CreatePrescriptionPage = lazy(() => import('@/pages/doctor/CreatePrescriptionPage'))
+const DoctorCalendarPage = lazy(() => import('@/pages/doctor/DoctorCalendarPage'))
+const DoctorConsultationPage = lazy(() => import('@/pages/doctor/DoctorConsultationPage'))
+const DoctorDashboardPage = lazy(() => import('@/pages/doctor/DoctorDashboardPage'))
+const DoctorPatientsPage = lazy(() => import('@/pages/doctor/DoctorPatientsPage'))
+const DoctorProfilePage = lazy(() => import('@/pages/doctor/DoctorProfilePage'))
+const EditPrescriptionPage = lazy(() => import('@/pages/doctor/EditPrescriptionPage'))
+const FollowUpPage = lazy(() => import('@/pages/patient/FollowUpPage'))
+const HistoryPage = lazy(() => import('@/pages/patient/HistoryPage'))
+const HomePage = lazy(() => import('@/pages/patient/HomePage'))
+const LanguagePage = lazy(() => import('@/pages/auth/LanguagePage'))
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage'))
+const MedicalHistoryPage = lazy(() => import('@/pages/patient/MedicalHistoryPage'))
+const MoreQuestionsPage = lazy(() => import('@/pages/patient/MoreQuestionsPage'))
+const OtpPage = lazy(() => import('@/pages/auth/OtpPage'))
+const PatientPrescriptionPage = lazy(() => import('@/pages/patient/PatientPrescriptionPage'))
+const PatientProfilePage = lazy(() => import('@/pages/patient/PatientProfilePage'))
+const PdfSharePage = lazy(() => import('@/pages/patient/PdfSharePage'))
+const PrescriptionApprovedPage = lazy(() => import('@/pages/doctor/PrescriptionApprovedPage'))
+const SummaryPage = lazy(() => import('@/pages/patient/SummaryPage'))
+const SubmissionSuccessPage = lazy(() => import('@/pages/patient/SubmissionSuccessPage'))
+const SymptomsPage = lazy(() => import('@/pages/patient/SymptomsPage'))
+const WelcomePage = lazy(() => import('@/pages/auth/WelcomePage'))
+const AuthPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.AuthPage })))
+const DoctorRegistrationPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.DoctorRegistrationPage })))
+const NotificationsPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.NotificationsPage })))
+const PatientMyProfilePage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.PatientMyProfilePage })))
+const PatientRegistrationPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.PatientRegistrationPage })))
+const RoleSelectionPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.RoleSelectionPage })))
+
+/** Shared parent for every route: lazy-chunk fallback + router-level error screen */
+const RootLayout = () => (
+  <Suspense fallback={<PageSkeleton />}>
+    <Outlet />
+  </Suspense>
+)
+
+const routes: RouteObject[] = [
   { path: '/', element: <LanguagePage /> },
   { path: '/welcome', element: <WelcomePage /> },
   { path: '/role-selection', element: <RoleSelectionPage /> },
@@ -247,5 +257,9 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+]
+
+export const router = createBrowserRouter([
+  { element: <RootLayout />, errorElement: <RouteErrorPage />, children: routes },
 ])
 

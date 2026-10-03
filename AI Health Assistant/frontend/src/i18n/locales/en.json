@@ -760,5 +760,15 @@
     "unknown": "Unknown",
     "none": "—",
     "loadError": "Failed to load data. Please try again."
+  },
+  "errors": {
+    "genericTitle": "Something went wrong",
+    "genericBody": "An unexpected error occurred. Please try again.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you're looking for doesn't exist.",
+    "updateTitle": "A new version is available",
+    "updateBody": "Reload the page to get the latest version of the app.",
+    "goHome": "Home",
+    "reload": "Reload"
   }
 }
