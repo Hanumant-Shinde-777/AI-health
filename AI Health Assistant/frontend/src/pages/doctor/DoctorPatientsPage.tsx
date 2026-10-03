@@ -90,7 +90,7 @@ const DoctorPatientsPage = () => {
         <h1 className="text-xl font-bold text-foreground">{t('doctorPatients.title')}</h1>
 
         {todayOnly ? (
-          <span className="inline-flex rounded-full bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-300">
+          <span className="inline-flex rounded-full bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-700 dark:text-sky-300">
             {t('doctorPatients.filterToday')}
           </span>
         ) : null}

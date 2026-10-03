@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  // `dark:` variants follow <html data-theme="dark"> set by ThemeContext
+  darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
       // Theme tokens live as RGB channels in src/assets/styles/index.css (:root)
@@ -19,8 +21,10 @@ export default {
         border: 'rgb(var(--c-border) / <alpha-value>)',
       },
       boxShadow: {
-        card: '0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.28)',
-        'card-hover': '0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 32px rgba(0, 0, 0, 0.38)',
+        card: 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+        float: 'var(--shadow-float)',
+        shell: 'var(--shadow-shell)',
         'primary-glow': '0 6px 24px rgb(var(--c-primary) / 0.35)',
         'success-glow': '0 6px 24px rgb(var(--c-success) / 0.30)',
         'input-focus': '0 0 0 3px rgb(var(--c-primary) / 0.25)',

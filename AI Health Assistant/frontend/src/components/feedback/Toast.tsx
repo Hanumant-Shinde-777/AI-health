@@ -39,7 +39,7 @@ export const ToastProvider = ({ children }: PropsWithChildren) => {
           <div
             key={toast.id}
             role="status"
-            className="flex items-start gap-3 rounded-app border border-border bg-surface/95 px-4 py-3 text-sm text-foreground shadow-[0_12px_32px_rgba(0,0,0,0.45)] backdrop-blur-md animate-toast-in"
+            className="flex items-start gap-3 rounded-app border border-border bg-surface/95 px-4 py-3 text-sm text-foreground shadow-float backdrop-blur-md animate-toast-in"
           >
             <Info size={18} className="mt-0.5 shrink-0 text-primary" />
             <span className="flex-1 leading-snug">{toast.message}</span>

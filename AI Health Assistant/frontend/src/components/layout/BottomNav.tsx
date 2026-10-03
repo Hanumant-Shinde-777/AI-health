@@ -14,7 +14,7 @@ interface NavItem {
 
 const NavBar = ({ items, onNavigate }: { items: NavItem[]; onNavigate: (to: string) => void }) => (
   <nav className="fixed bottom-0 left-1/2 z-20 w-full max-w-[430px] -translate-x-1/2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-    <div className="flex h-16 items-stretch gap-1 rounded-[22px] border border-border/80 bg-card/85 p-1.5 shadow-[0_10px_36px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+    <div className="flex h-16 items-stretch gap-1 rounded-[22px] border border-border/80 bg-card/85 p-1.5 shadow-float backdrop-blur-xl">
       {items.map((item) => {
         const Icon = item.icon
         return (

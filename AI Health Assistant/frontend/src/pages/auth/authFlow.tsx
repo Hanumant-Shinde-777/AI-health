@@ -17,6 +17,7 @@ import { PatientLoginForm } from './PatientLoginForm'
 import { getProfile, updateMedicalHistory, updateProfile } from '@/services/patientsService'
 import LoadingSpinner from '@/components/feedback/LoadingSpinner'
 import RegistrationSuccessModal from '@/components/ui/RegistrationSuccessModal'
+import { AppearanceCard } from '@/components/ui/ThemeToggle'
 import FormField from '@/components/forms/FormField'
 import MedicalHistoryForm from '@/components/forms/MedicalHistoryForm'
 import { useToast } from '@/components/feedback/Toast'
@@ -1471,6 +1472,8 @@ export const PatientMyProfilePage = () => {
             </div>
           </>
         )}
+
+        <AppearanceCard className="mt-4" />
 
         <button
           type="button"

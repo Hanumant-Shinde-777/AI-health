@@ -67,6 +67,7 @@ import LoadingSpinner from '@/components/feedback/LoadingSpinner'
 import ErrorAlert from '@/components/feedback/ErrorAlert'
 import ThinkingIndicator from '@/components/feedback/ThinkingIndicator'
 import ChatBubble from '@/components/ui/ChatBubble'
+import { AppearanceCard } from '@/components/ui/ThemeToggle'
 import RiskBadge from '@/components/ui/RiskBadge'
 import { useToast } from '@/components/feedback/Toast'
 import { AnswerChip } from '@/components/ui/AnswerChip'
@@ -3804,6 +3805,8 @@ export const DoctorProfilePage = () => {
             />
           </button>
         </div>
+
+        <AppearanceCard />
 
         <button
           type="button"

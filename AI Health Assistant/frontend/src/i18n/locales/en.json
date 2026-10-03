@@ -770,5 +770,12 @@
     "updateBody": "Reload the page to get the latest version of the app.",
     "goHome": "Home",
     "reload": "Reload"
+  },
+  "theme": {
+    "title": "Appearance",
+    "description": "Choose how the app looks on this device.",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
 }
