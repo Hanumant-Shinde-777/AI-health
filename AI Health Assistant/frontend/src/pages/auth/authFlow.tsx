@@ -18,6 +18,7 @@ import { getProfile, updateMedicalHistory, updateProfile } from '@/services/pati
 import LoadingSpinner from '@/components/feedback/LoadingSpinner'
 import RegistrationSuccessModal from '@/components/ui/RegistrationSuccessModal'
 import { AppearanceCard } from '@/components/ui/ThemeToggle'
+import BackButton from '@/components/ui/BackButton'
 import FormField from '@/components/forms/FormField'
 import MedicalHistoryForm from '@/components/forms/MedicalHistoryForm'
 import { useToast } from '@/components/feedback/Toast'
@@ -145,9 +146,7 @@ const AuthFlowHeader = ({
   <div className="mb-6 flex items-start justify-between gap-3">
     <div className="flex items-start gap-3">
       {onBack ? (
-        <button type="button" onClick={onBack} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
-          <ArrowLeft size={18} />
-        </button>
+        <BackButton onClick={onBack} />
       ) : null}
       <div>
         <h1 className="text-[22px] font-bold leading-tight tracking-tight text-foreground sm:text-2xl">{title}</h1>

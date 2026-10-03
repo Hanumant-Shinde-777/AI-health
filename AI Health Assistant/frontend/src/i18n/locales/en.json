@@ -812,5 +812,10 @@
     "confidence": "Confidence",
     "aiSpecialist": "AI Recommended Specialist",
     "risk": "Risk level"
+  },
+  "a11y": {
+    "startRecording": "Start recording",
+    "stopRecording": "Stop recording",
+    "edit": "Edit"
   }
 }

@@ -22,6 +22,15 @@ if (!i18n.isInitialized) {
   })
 }
 
+// Keep <html lang> in sync so screen readers use the right pronunciation rules
+const setDocumentLanguage = (language: string) => {
+  if (typeof document !== 'undefined' && language) {
+    document.documentElement.lang = language
+  }
+}
+setDocumentLanguage(i18n.language)
+i18n.on('languageChanged', setDocumentLanguage)
+
 export const syncI18nLanguage = (language: string): void => {
   if (i18n.language !== language) {
     void i18n.changeLanguage(language)

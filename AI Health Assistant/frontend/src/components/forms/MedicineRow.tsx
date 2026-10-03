@@ -43,6 +43,7 @@ const MedicineRow = ({
           <button
             type="button"
             onClick={() => onToggleEdit?.(index)}
+            aria-label={t('a11y.edit', 'Edit')}
             className="rounded-full border border-border p-2 text-muted"
           >
             <Pencil size={14} />

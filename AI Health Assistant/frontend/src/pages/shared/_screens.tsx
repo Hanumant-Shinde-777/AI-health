@@ -11,7 +11,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   AlertTriangle,
   Apple,
-  ArrowLeft,
   Bell,
   Calendar,
   CheckCircle,
@@ -69,6 +68,7 @@ import Skeleton, { PageSkeleton, SkeletonCard } from '@/components/feedback/Skel
 import ErrorAlert from '@/components/feedback/ErrorAlert'
 import ThinkingIndicator from '@/components/feedback/ThinkingIndicator'
 import ChatBubble from '@/components/ui/ChatBubble'
+import BackButton from '@/components/ui/BackButton'
 import { AppearanceCard } from '@/components/ui/ThemeToggle'
 import HistoryFilters from '@/components/ui/HistoryFilters'
 import ReportActions, { PrintHeader } from '@/components/ui/ReportActions'
@@ -170,9 +170,7 @@ const Header = ({
   <div className="mb-6 flex items-start justify-between gap-3">
     <div className="flex items-start gap-3">
       {onBack ? (
-        <button type="button" onClick={onBack} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
-          <ArrowLeft size={18} />
-        </button>
+        <BackButton onClick={onBack} />
       ) : null}
       <div>
         <h1 className="text-[22px] font-bold leading-tight tracking-tight text-foreground sm:text-2xl">{title}</h1>
@@ -1120,6 +1118,7 @@ export const SymptomsPage = () => {
                 type="button"
                 onClick={isListening ? stopListening : startListening}
                 aria-pressed={isListening}
+                aria-label={isListening ? t('a11y.stopRecording', 'Stop recording') : t('a11y.startRecording', 'Start recording')}
                 className={classNames(
                   'relative flex h-24 w-24 items-center justify-center rounded-full text-white transition-all duration-300 active:scale-95',
                   isListening
@@ -1731,6 +1730,7 @@ export const AdditionalNotesPage = () => {
                 type="button"
                 onClick={isListening ? stopListening : startListening}
                 aria-pressed={isListening}
+                aria-label={isListening ? t('a11y.stopRecording', 'Stop recording') : t('a11y.startRecording', 'Start recording')}
                 className={classNames(
                   'relative flex h-24 w-24 items-center justify-center rounded-full text-white transition-all duration-300 active:scale-95',
                   isListening
@@ -2791,7 +2791,7 @@ export const PatientPrescriptionPage = () => {
           title={t('patientPrescription.title')}
           onBack={() => window.history.back()}
           right={
-            <button type="button" onClick={() => void handleDownload()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
+            <button type="button" onClick={() => void handleDownload()} aria-label={t('pdfShare.downloadPdf')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
               <Download size={18} />
             </button>
           }

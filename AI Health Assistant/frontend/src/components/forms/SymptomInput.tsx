@@ -85,6 +85,8 @@ const SymptomInput = ({
             <button
               type="button"
               onClick={isListening ? stopListening : startListening}
+              aria-pressed={isListening}
+              aria-label={isListening ? t('a11y.stopRecording', 'Stop recording') : t('a11y.startRecording', 'Start recording')}
               className="relative flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white"
             >
               <Mic size={28} />
