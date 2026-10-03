@@ -43,7 +43,7 @@ const MedicineRow = ({
           <button
             type="button"
             onClick={() => onToggleEdit?.(index)}
-            className="rounded-full border border-border p-2 text-slate-500"
+            className="rounded-full border border-border p-2 text-muted"
           >
             <Pencil size={14} />
           </button>

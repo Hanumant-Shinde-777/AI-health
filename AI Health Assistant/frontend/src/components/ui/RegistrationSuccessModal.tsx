@@ -16,7 +16,7 @@ const RegistrationSuccessModal = ({ open, isDoctor = false, onGoToLogin }: Regis
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center">
-      <div className="w-full max-w-sm animate-bounce-in overflow-hidden rounded-[24px] bg-white shadow-[0_24px_64px_rgba(0,0,0,0.18)] ring-1 ring-black/5">
+      <div className="w-full max-w-sm animate-bounce-in overflow-hidden rounded-[24px] bg-card shadow-[0_24px_64px_rgba(0,0,0,0.18)] ring-1 ring-white/5">
         {/* Green gradient header stripe */}
         <div className="h-2 w-full" style={{ background: 'linear-gradient(90deg, #34A853, #1e8c3c)' }} />
 

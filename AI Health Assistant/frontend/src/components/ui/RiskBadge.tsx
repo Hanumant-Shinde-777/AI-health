@@ -5,9 +5,9 @@ interface RiskBadgeProps {
 }
 
 const levelStyles: Record<RiskLevel, string> = {
-  LOW: 'bg-[#E8F5E9] text-[#1B5E20]',
-  MEDIUM: 'bg-[#FFF3E0] text-[#E65100]',
-  HIGH: 'bg-[#FFEBEE] text-[#B71C1C]',
+  LOW: 'bg-success/15 text-success ring-1 ring-inset ring-success/30',
+  MEDIUM: 'bg-warning/15 text-warning ring-1 ring-inset ring-warning/30',
+  HIGH: 'bg-danger/15 text-danger ring-1 ring-inset ring-danger/30',
 }
 
 const levelLabels: Record<RiskLevel, string> = {
@@ -17,7 +17,8 @@ const levelLabels: Record<RiskLevel, string> = {
 }
 
 const RiskBadge = ({ level }: RiskBadgeProps) => (
-  <span className={`inline-flex rounded-full px-4 py-2 text-sm font-semibold ${levelStyles[level]}`}>
+  <span className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold ${levelStyles[level]}`}>
+    <span className="h-2 w-2 rounded-full bg-current" aria-hidden />
     {levelLabels[level]}
   </span>
 )

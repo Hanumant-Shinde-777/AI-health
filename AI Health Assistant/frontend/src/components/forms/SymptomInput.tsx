@@ -53,13 +53,13 @@ const SymptomInput = ({
 
   return (
     <form onSubmit={handleSubmit((values) => onSubmit(values.text.trim()))} className="space-y-4">
-      <div className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1">
+      <div className="grid grid-cols-2 rounded-2xl bg-surface p-1">
         <button
           type="button"
           onClick={() => setTab('voice')}
           className={classNames(
             'flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium',
-            tab === 'voice' ? 'bg-white text-primary shadow-sm' : 'text-slate-500',
+            tab === 'voice' ? 'bg-card text-primary shadow-sm' : 'text-muted',
           )}
         >
           <Mic size={16} />
@@ -70,7 +70,7 @@ const SymptomInput = ({
           onClick={() => setTab('type')}
           className={classNames(
             'flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium',
-            tab === 'type' ? 'bg-white text-primary shadow-sm' : 'text-slate-500',
+            tab === 'type' ? 'bg-card text-primary shadow-sm' : 'text-muted',
           )}
         >
           <Keyboard size={16} />
@@ -90,10 +90,10 @@ const SymptomInput = ({
               <Mic size={28} />
             </button>
           </div>
-          <p className="text-sm font-medium text-slate-700">
+          <p className="text-sm font-medium text-foreground">
             {isListening ? t('forms.stopListening') : t('forms.startListening')}
           </p>
-          <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+          <div className="rounded-2xl bg-surface p-4 text-sm text-muted">
             {value || t('forms.transcriptPlaceholder')}
           </div>
           {!isSupported || error ? <p className="text-sm text-danger">{error}</p> : null}

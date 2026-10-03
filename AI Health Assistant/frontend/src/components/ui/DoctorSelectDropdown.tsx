@@ -64,13 +64,13 @@ const DoctorSelectDropdown = ({
         <p className="text-sm text-muted">
           {t('summary.availableDoctorsSubtitle', { specialization })}
         </p>
-        <p className="mt-1 text-xs text-[#6B7280]">
+        <p className="mt-1 text-xs text-muted">
           {t('summary.doctorCount', { count: doctors.length, specialization })}
         </p>
       </div>
 
       {usedFallback && requestedSpecialization ? (
-        <p className="rounded-app bg-[#FFF3E0] px-3 py-2 text-xs text-[#E65100]">
+        <p className="rounded-app bg-warning/15 px-3 py-2 text-xs text-warning">
           {t('summary.doctorFallback', { specialization: requestedSpecialization })}
         </p>
       ) : null}
@@ -84,28 +84,28 @@ const DoctorSelectDropdown = ({
           aria-haspopup="listbox"
           aria-expanded={open}
           className={classNames(
-            'flex w-full items-center gap-3 rounded-[12px] border-[1.5px] bg-white px-4 py-3.5 text-left transition',
-            selected ? 'border-[#34A853]' : 'border-[#E5E7EB]',
+            'flex w-full items-center gap-3 rounded-[12px] border-[1.5px] bg-card px-4 py-3.5 text-left transition',
+            selected ? 'border-success' : 'border-border',
           )}
         >
           {selected ? (
             <>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#E8F0FE] text-sm font-bold text-[#1A73E8]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary">
                 {selected.name.replace(/^Dr\.\s*/i, '').charAt(0)}
               </div>
               <span className="flex-1 text-sm font-semibold text-foreground">{selected.name}</span>
-              <Check size={20} className="text-[#34A853]" />
+              <Check size={20} className="text-success" />
             </>
           ) : (
             <>
-              <span className="flex-1 text-sm text-[#9CA3AF]">{t('summary.selectDoctorPlaceholder')}</span>
+              <span className="flex-1 text-sm text-subtle">{t('summary.selectDoctorPlaceholder')}</span>
               <ChevronDown size={20} className="text-muted" />
             </>
           )}
         </button>
 
         {open ? (
-          <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-[320px] overflow-hidden rounded-[12px] border-[1.5px] border-[#E5E7EB] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+          <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-[320px] overflow-hidden rounded-[12px] border-[1.5px] border-border bg-card shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
             <div className="border-b border-border p-3">
               <FormField label={t('formLabels.searchDoctor')} htmlFor="summary-doctor-search">
                 <div className="relative">
@@ -131,7 +131,7 @@ const DoctorSelectDropdown = ({
                       'rounded-[50px] border px-3 py-1 text-xs font-semibold',
                       filter === chip.key
                         ? 'border-primary bg-primary text-white'
-                        : 'border-border bg-white text-[#374151]',
+                        : 'border-border bg-card text-foreground',
                     )}
                   >
                     {chip.label}
@@ -152,10 +152,10 @@ const DoctorSelectDropdown = ({
                       onSelect(doctor)
                       setOpen(false)
                     }}
-                    className="mb-2 w-full rounded-app border border-transparent p-3 text-left transition hover:border-primary/20 hover:bg-[#F0F7FF]"
+                    className="mb-2 w-full rounded-app border border-transparent p-3 text-left transition hover:border-primary/20 hover:bg-primary/10"
                   >
                     <div className="flex gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E8F0FE] text-sm font-bold text-[#1A73E8]">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary">
                         {doctor.name.replace(/^Dr\.\s*/i, '').charAt(0)}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -177,13 +177,13 @@ const DoctorSelectDropdown = ({
                         <p
                           className={classNames(
                             'mt-1 flex items-center gap-1 text-xs font-medium',
-                            doctor.availableToday ? 'text-[#1B5E20]' : 'text-muted',
+                            doctor.availableToday ? 'text-success' : 'text-muted',
                           )}
                         >
                           <span
                             className={classNames(
                               'h-2 w-2 rounded-full',
-                              doctor.availableToday ? 'bg-[#34A853]' : 'bg-gray-400',
+                              doctor.availableToday ? 'bg-success' : 'bg-subtle',
                             )}
                           />
                           {doctor.availableToday

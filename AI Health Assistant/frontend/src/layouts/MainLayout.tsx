@@ -12,7 +12,7 @@ const Layout = ({ children, hideNav = false }: LayoutProps) => {
 
   return (
     <MobileShell>
-      <div className={isAuthenticated && !hideNav ? 'min-h-screen pb-20' : 'min-h-screen'}>{children}</div>
+      <div className={isAuthenticated && !hideNav ? 'min-h-screen pb-nav' : 'min-h-screen'}>{children}</div>
       {isAuthenticated && !hideNav ? <BottomNav /> : null}
     </MobileShell>
   )
