@@ -157,7 +157,7 @@ function OtpDigitInput({
         }}
         inputMode="numeric"
         placeholder={index === 0 ? t('otp.digitPlaceholder') : undefined}
-        className="h-12 w-full rounded-app border border-border text-center text-xl font-semibold text-foreground outline-none transition placeholder:text-[#9CA3AF] focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-60"
+        className="h-12 w-full rounded-app border border-border text-center text-xl font-semibold text-foreground outline-none transition placeholder:text-subtle focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-60"
       />
     </div>
   )
@@ -210,15 +210,15 @@ export function SocialButtons({ showToast, t }: { showToast: (msg: string) => vo
       <div className="flex gap-3">
         <button
           type="button"
-          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-app border border-border bg-white font-medium shadow-card"
+          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-app border border-border bg-card font-medium shadow-card"
           onClick={() => showToast(t('login.socialSoon'))}
         >
-          <span className="text-lg font-bold text-[#EA4335]">G</span>
+          <span className="text-lg font-bold text-danger">G</span>
           <span className="hidden sm:inline">{t('login.google')}</span>
         </button>
         <button
           type="button"
-          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-app border border-border bg-white font-medium shadow-card"
+          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-app border border-border bg-card font-medium shadow-card"
           onClick={() => showToast(t('login.socialSoon'))}
         >
           <Apple size={18} className="text-foreground" />

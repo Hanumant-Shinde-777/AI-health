@@ -3,24 +3,27 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // Theme tokens live as RGB channels in src/assets/styles/index.css (:root)
       colors: {
-        primary: '#1A73E8',
-        primaryDark: '#0D47A1',
-        success: '#34A853',
-        danger: '#EA4335',
-        warning: '#FBBC04',
-        background: '#F9FAFB',
-        card: '#FFFFFF',
-        foreground: '#1C1C1E',
-        muted: '#6B7280',
-        border: '#E5E7EB',
+        primary: 'rgb(var(--c-primary) / <alpha-value>)',
+        primaryDark: 'rgb(var(--c-primary-dark) / <alpha-value>)',
+        success: 'rgb(var(--c-success) / <alpha-value>)',
+        danger: 'rgb(var(--c-danger) / <alpha-value>)',
+        warning: 'rgb(var(--c-warning) / <alpha-value>)',
+        background: 'rgb(var(--c-background) / <alpha-value>)',
+        card: 'rgb(var(--c-card) / <alpha-value>)',
+        surface: 'rgb(var(--c-surface) / <alpha-value>)',
+        foreground: 'rgb(var(--c-foreground) / <alpha-value>)',
+        muted: 'rgb(var(--c-muted) / <alpha-value>)',
+        subtle: 'rgb(var(--c-subtle) / <alpha-value>)',
+        border: 'rgb(var(--c-border) / <alpha-value>)',
       },
       boxShadow: {
-        card: '0 2px 16px rgba(0, 0, 0, 0.07)',
-        'card-hover': '0 6px 28px rgba(0, 0, 0, 0.12)',
-        'primary-glow': '0 4px 20px rgba(26, 115, 232, 0.30)',
-        'success-glow': '0 4px 20px rgba(52, 168, 83, 0.30)',
-        'input-focus': '0 0 0 3px rgba(26, 115, 232, 0.15)',
+        card: '0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.28)',
+        'card-hover': '0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 32px rgba(0, 0, 0, 0.38)',
+        'primary-glow': '0 6px 24px rgb(var(--c-primary) / 0.35)',
+        'success-glow': '0 6px 24px rgb(var(--c-success) / 0.30)',
+        'input-focus': '0 0 0 3px rgb(var(--c-primary) / 0.25)',
       },
       borderRadius: {
         app: '12px',
@@ -28,10 +31,10 @@ export default {
         pill: '50px',
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, #1A73E8 0%, #0D47A1 100%)',
-        'gradient-primary-soft': 'linear-gradient(135deg, #1A73E8 0%, #1557B0 100%)',
-        'gradient-surface': 'linear-gradient(180deg, #FFFFFF 0%, #F5F8FF 100%)',
-        'gradient-hero': 'linear-gradient(135deg, #EBF3FF 0%, #F0F7FF 50%, #F9FAFB 100%)',
+        'gradient-primary': 'linear-gradient(135deg, rgb(var(--c-primary)) 0%, rgb(var(--c-primary-dark)) 100%)',
+        'gradient-primary-soft': 'linear-gradient(135deg, rgb(var(--c-primary)) 0%, rgb(var(--c-primary-dark) / 0.85) 100%)',
+        'gradient-surface': 'linear-gradient(180deg, rgb(var(--c-card)) 0%, rgb(var(--c-background)) 100%)',
+        'gradient-hero': 'linear-gradient(135deg, rgb(var(--c-primary) / 0.18) 0%, rgb(var(--c-primary) / 0.08) 50%, rgb(var(--c-background)) 100%)',
       },
       keyframes: {
         'scale-in': {
@@ -67,6 +70,14 @@ export default {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
+        'typing-dot': {
+          '0%, 60%, 100%': { transform: 'translateY(0)', opacity: '0.35' },
+          '30%': { transform: 'translateY(-4px)', opacity: '1' },
+        },
+        'toast-in': {
+          '0%': { opacity: '0', transform: 'translateY(-8px) scale(0.98)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
       },
       animation: {
         'scale-in': 'scale-in 0.45s ease-out',
@@ -77,6 +88,8 @@ export default {
         'fade-in': 'fade-in 0.3s ease-out',
         'bounce-in': 'bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
         shimmer: 'shimmer 2s linear infinite',
+        'typing-dot': 'typing-dot 1.2s ease-in-out infinite',
+        'toast-in': 'toast-in 0.25s ease-out both',
       },
     },
   },

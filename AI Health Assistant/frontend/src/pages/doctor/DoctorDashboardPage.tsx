@@ -29,36 +29,36 @@ const STAT_CARD_STYLES: Record<
   { gradient: string; labelColor: string; countColor: string; border: string; activeBorder: string; glow: string }
 > = {
   pending: {
-    gradient: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
-    labelColor: '#92400E',
-    countColor: '#D97706',
-    border: '#FDE68A',
+    gradient: 'linear-gradient(135deg, rgba(245,158,11,0.16) 0%, rgba(245,158,11,0.06) 100%)',
+    labelColor: '#FCD34D',
+    countColor: '#FBBF24',
+    border: 'rgba(245,158,11,0.25)',
     activeBorder: '#F59E0B',
-    glow: 'rgba(245,158,11,0.18)',
+    glow: 'rgba(245,158,11,0.28)',
   },
   reviewed: {
-    gradient: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
-    labelColor: '#065F46',
-    countColor: '#059669',
-    border: '#A7F3D0',
+    gradient: 'linear-gradient(135deg, rgba(16,185,129,0.16) 0%, rgba(16,185,129,0.06) 100%)',
+    labelColor: '#6EE7B7',
+    countColor: '#34D399',
+    border: 'rgba(16,185,129,0.25)',
     activeBorder: '#10B981',
-    glow: 'rgba(16,185,129,0.18)',
+    glow: 'rgba(16,185,129,0.28)',
   },
   today: {
-    gradient: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
-    labelColor: '#1E40AF',
-    countColor: '#2563EB',
-    border: '#BFDBFE',
+    gradient: 'linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(59,130,246,0.06) 100%)',
+    labelColor: '#93C5FD',
+    countColor: '#60A5FA',
+    border: 'rgba(59,130,246,0.28)',
     activeBorder: '#3B82F6',
-    glow: 'rgba(59,130,246,0.18)',
+    glow: 'rgba(59,130,246,0.30)',
   },
   total: {
-    gradient: 'linear-gradient(135deg, #F8FAFF 0%, #EEF2FF 100%)',
-    labelColor: '#374151',
-    countColor: '#1A73E8',
-    border: '#E0E7FF',
+    gradient: 'linear-gradient(135deg, rgba(129,140,248,0.16) 0%, rgba(129,140,248,0.05) 100%)',
+    labelColor: '#C7D2FE',
+    countColor: '#A5B4FC',
+    border: 'rgba(129,140,248,0.25)',
     activeBorder: '#818CF8',
-    glow: 'rgba(129,140,248,0.18)',
+    glow: 'rgba(129,140,248,0.28)',
   },
 }
 
@@ -155,7 +155,7 @@ const DoctorDashboardPage = () => {
           </div>
         ) : null}
 
-        <div className="-mx-4 -mt-5 mb-1 rounded-b-[28px] bg-gradient-to-br from-[#1557B0] to-[#0D47A1] px-5 pb-6 pt-5 shadow-lg">
+        <div className="-mx-4 -mt-5 mb-1 rounded-b-[28px] bg-gradient-to-br from-primaryDark to-primaryDark px-5 pb-6 pt-5 shadow-lg">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
@@ -181,7 +181,7 @@ const DoctorDashboardPage = () => {
             >
               <Bell size={20} />
               {doctorNotificationCount > 0 ? (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-400 px-0.5 text-[9px] font-bold text-white">
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-0.5 text-[9px] font-bold text-white">
                   {doctorNotificationCount > 9 ? '9+' : doctorNotificationCount}
                 </span>
               ) : null}
@@ -190,7 +190,7 @@ const DoctorDashboardPage = () => {
         </div>
 
         {error ? (
-          <div className="flex items-center justify-between gap-3 rounded-app border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="flex items-center justify-between gap-3 rounded-app border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
             <span>{t('doctorDashboard.loadError')}</span>
             <button type="button" className="font-semibold underline" onClick={() => void refresh()}>
               {t('doctorDashboard.retry')}
@@ -201,7 +201,7 @@ const DoctorDashboardPage = () => {
         <div className="grid grid-cols-4 gap-2">
           {isLoading && !lastUpdated
             ? Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="h-[76px] animate-pulse rounded-xl bg-slate-200" />
+                <div key={index} className="h-[76px] animate-pulse rounded-xl bg-border" />
               ))
             : statEntries.map(({ key, label, count }) => {
                 const style = STAT_CARD_STYLES[key]
@@ -215,7 +215,7 @@ const DoctorDashboardPage = () => {
                     style={{
                       background: style.gradient,
                       border: `1.5px solid ${isActive ? style.activeBorder : style.border}`,
-                      boxShadow: isActive ? `0 4px 16px ${style.glow}` : '0 1px 4px rgba(0,0,0,0.04)',
+                      boxShadow: isActive ? `0 4px 16px ${style.glow}` : '0 1px 4px rgba(0,0,0,0.25)',
                     }}
                   >
                     <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: style.labelColor }}>
@@ -230,7 +230,7 @@ const DoctorDashboardPage = () => {
         </div>
 
         {lastUpdated ? (
-          <p className="text-center text-[11px] text-[#9CA3AF]">
+          <p className="text-center text-[11px] text-subtle">
             {t('doctorDashboard.lastUpdated', { time: formatLastUpdatedLabel(lastUpdated) })}
           </p>
         ) : null}
@@ -264,7 +264,7 @@ const DoctorDashboardPage = () => {
                       navigate(item.path)
                     }
                   }}
-                  className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-white p-3 text-center shadow-sm transition-all active:scale-[0.96] hover:shadow"
+                  className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center shadow-sm transition-all active:scale-[0.96] hover:shadow"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
                     <Icon size={18} />
@@ -281,20 +281,20 @@ const DoctorDashboardPage = () => {
           {isLoading && pendingCases.length === 0 ? (
             <div className="space-y-3">
               {Array.from({ length: 2 }).map((_, index) => (
-                <div key={index} className="h-32 animate-pulse rounded-app bg-slate-200" />
+                <div key={index} className="h-32 animate-pulse rounded-app bg-border" />
               ))}
             </div>
           ) : null}
           {!isLoading && pendingCases.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-app border border-dashed border-border py-12 text-center">
-              <CheckCircle2 size={48} className="mb-3 text-[#22C55E]" strokeWidth={1.5} />
+              <CheckCircle2 size={48} className="mb-3 text-success" strokeWidth={1.5} />
               <p className="font-semibold text-foreground">{t('doctorDashboard.allCaughtUp')}</p>
               <p className="mt-1 text-sm text-muted">{t('doctorDashboard.allCaughtUpSub')}</p>
             </div>
           ) : null}
           <div className="space-y-3">
             {pendingCases.map((item) => (
-              <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-white shadow-card transition-all duration-200 hover:shadow-card-hover">
+              <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all duration-200 hover:shadow-card-hover">
                 <div className="flex items-start gap-3 p-4">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primaryDark text-sm font-bold text-white shadow-sm">
                     {(item.patientName?.trim().charAt(0) ?? 'P').toUpperCase()}
@@ -307,7 +307,7 @@ const DoctorDashboardPage = () => {
                           {item.patientAge} · {item.patientGender}
                         </p>
                       </div>
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-muted">
+                      <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium text-muted">
                         {formatCaseRelativeTime(item.createdAt)}
                       </span>
                     </div>

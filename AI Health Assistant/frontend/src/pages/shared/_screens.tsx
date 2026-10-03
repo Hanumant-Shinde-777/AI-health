@@ -22,12 +22,14 @@ import {
   FileText,
   Globe,
   Headphones,
+  Keyboard,
   Heart,
   LogOut,
   Mic,
   Pencil,
   Pill,
   Plus,
+  RotateCcw,
   Search,
   Stethoscope,
   UserRound,
@@ -62,6 +64,9 @@ import {
   updatePrescription,
 } from '@/services/prescriptionsService'
 import LoadingSpinner from '@/components/feedback/LoadingSpinner'
+import ErrorAlert from '@/components/feedback/ErrorAlert'
+import ThinkingIndicator from '@/components/feedback/ThinkingIndicator'
+import ChatBubble from '@/components/ui/ChatBubble'
 import RiskBadge from '@/components/ui/RiskBadge'
 import { useToast } from '@/components/feedback/Toast'
 import { AnswerChip } from '@/components/ui/AnswerChip'
@@ -158,12 +163,12 @@ const Header = ({
   <div className="mb-6 flex items-start justify-between gap-3">
     <div className="flex items-start gap-3">
       {onBack ? (
-        <button type="button" onClick={onBack} className="rounded-full border border-border p-2">
+        <button type="button" onClick={onBack} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
           <ArrowLeft size={18} />
         </button>
       ) : null}
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+        <h1 className="text-[22px] font-bold leading-tight tracking-tight text-foreground sm:text-2xl">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-muted">{subtitle}</p> : null}
       </div>
     </div>
@@ -230,7 +235,7 @@ export const LanguagePage = () => {
                 onClick={() => setValue('language', item.code)}
                 className={classNames(
                   'flex w-full items-center justify-between rounded-card border px-4 py-4 text-left transition',
-                  language === item.code ? 'border-primary bg-primary/5' : 'border-border bg-white shadow-card',
+                  language === item.code ? 'border-primary bg-primary/5' : 'border-border bg-card shadow-card',
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -291,7 +296,7 @@ export const WelcomePage = () => {
   return (
     <Layout hideNav>
       <div className="page-padding flex min-h-screen flex-col items-center bg-background text-center">
-        <div className="mt-6 w-full rounded-[28px] bg-gradient-to-br from-[#EBF3FF] via-[#EEF4FF] to-[#F0F7FF] py-8 shadow-[0_4px_24px_rgba(26,115,232,0.10)]">
+        <div className="mt-6 w-full rounded-[28px] bg-gradient-to-br from-primary/15 via-primary/10 to-primary/10 py-8 shadow-[0_4px_24px_rgba(26,115,232,0.10)]">
           <div className="flex justify-center">
             <WelcomeHeartIcon />
           </div>
@@ -302,7 +307,7 @@ export const WelcomePage = () => {
         <ul className="mt-6 w-full max-w-sm space-y-2.5 text-left">
           {[t('welcome.features.ai'), t('welcome.features.voice'), t('welcome.features.doctor'), t('welcome.features.secure')].map(
             (label) => (
-              <li key={label} className="flex items-center gap-3 rounded-xl border border-primary/10 bg-white px-4 py-3 shadow-sm transition-all hover:border-primary/20 hover:shadow">
+              <li key={label} className="flex items-center gap-3 rounded-xl border border-primary/10 bg-card px-4 py-3 shadow-sm transition-all hover:border-primary/20 hover:shadow">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
                   <CheckCircle size={16} strokeWidth={2.5} />
                 </div>
@@ -538,7 +543,7 @@ export const OtpPage = () => {
                   }}
                   inputMode="numeric"
                   placeholder={index === 0 ? t('otp.digitPlaceholder') : undefined}
-                  className="otp-digit h-14 w-full rounded-2xl border-2 border-border bg-white text-center text-2xl font-bold text-foreground shadow-sm outline-none transition-all duration-200 placeholder:text-[#D1D5DB] focus:border-primary focus:shadow-[0_0_0_4px_rgba(26,115,232,0.12)] focus:ring-0"
+                  className="otp-digit h-14 w-full rounded-2xl border-2 border-border bg-card text-center text-2xl font-bold text-foreground shadow-sm outline-none transition-all duration-200 placeholder:text-border focus:border-primary focus:shadow-[0_0_0_4px_rgba(26,115,232,0.12)] focus:ring-0"
                   style={{ letterSpacing: digit ? '0.1em' : 0 }}
                 />
               </div>
@@ -798,7 +803,7 @@ export const HomePage = () => {
     <Layout>
       <div className="space-y-5 bg-background pb-6">
         {/* Gradient hero banner */}
-        <div className="rounded-b-[32px] bg-gradient-to-br from-primary to-[#0D47A1] px-5 pb-8 pt-6 shadow-lg">
+        <div className="rounded-b-[32px] bg-gradient-to-br from-primary to-primaryDark px-5 pb-8 pt-6 shadow-lg">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
@@ -820,7 +825,7 @@ export const HomePage = () => {
             >
               <Bell size={22} strokeWidth={1.5} />
               {notificationCount > 0 ? (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-400 px-1 text-[10px] font-bold text-white">
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
                   {notificationCount > 9 ? '9+' : notificationCount}
                 </span>
               ) : null}
@@ -832,7 +837,7 @@ export const HomePage = () => {
             <button
               type="button"
               onClick={() => navigate('/symptoms')}
-              className="pulse-ring relative flex h-24 w-24 items-center justify-center rounded-full bg-white text-primary shadow-[0_8px_32px_rgba(255,255,255,0.3)] transition-all active:scale-[0.96]"
+              className="pulse-ring relative flex h-24 w-24 items-center justify-center rounded-full bg-white text-primaryDark shadow-[0_8px_32px_rgba(255,255,255,0.3)] transition-all active:scale-[0.96]"
               aria-label={t('home.tapToSpeak')}
             >
               <Mic size={36} strokeWidth={2} />
@@ -1051,64 +1056,107 @@ export const SymptomsPage = () => {
       <div className="page-padding space-y-5 bg-background">
         <Header title={t('symptoms.title')} onBack={() => navigate(-1)} />
 
-        <div className="grid grid-cols-2 rounded-card border border-border bg-white p-1 shadow-card">
+        <div className="relative grid grid-cols-2 rounded-pill border border-border bg-card p-1">
+          <span
+            aria-hidden
+            className={classNames(
+              'absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-pill bg-gradient-primary shadow-primary-glow transition-transform duration-300 ease-out',
+              tab === 'type' ? 'translate-x-full' : 'translate-x-0',
+            )}
+          />
           <button
             type="button"
             onClick={() => setTab('voice')}
+            aria-pressed={tab === 'voice'}
             className={classNames(
-              'rounded-app py-2.5 text-sm font-semibold transition',
-              tab === 'voice' ? 'bg-primary text-white' : 'text-muted',
+              'relative z-10 flex items-center justify-center gap-2 rounded-pill py-2.5 text-sm font-semibold transition-colors',
+              tab === 'voice' ? 'text-white' : 'text-muted hover:text-foreground',
             )}
           >
+            <Mic size={16} />
             {t('forms.voiceInput')}
           </button>
           <button
             type="button"
             onClick={() => setTab('type')}
+            aria-pressed={tab === 'type'}
             className={classNames(
-              'rounded-app py-2.5 text-sm font-semibold transition',
-              tab === 'type' ? 'bg-primary text-white' : 'text-muted',
+              'relative z-10 flex items-center justify-center gap-2 rounded-pill py-2.5 text-sm font-semibold transition-colors',
+              tab === 'type' ? 'text-white' : 'text-muted hover:text-foreground',
             )}
           >
+            <Keyboard size={16} />
             {t('forms.typeInput')}
           </button>
         </div>
 
         {tab === 'voice' ? (
-          <div className="card space-y-5 p-5">
-            <VoiceWaveform />
-            <div className="text-center text-sm text-muted">{formatRec(recordSeconds)}</div>
-            <div className="flex flex-col items-center gap-2">
+          <div className="card space-y-5 p-5 animate-fade-in">
+            <div className={classNames('transition-opacity duration-300', isListening ? 'opacity-100' : 'opacity-40')}>
+              <VoiceWaveform />
+            </div>
+            <div
+              className={classNames(
+                'mx-auto flex w-fit items-center gap-2 rounded-pill px-3 py-1 font-mono text-sm tabular-nums',
+                isListening ? 'bg-danger/15 text-danger' : 'bg-surface text-muted',
+              )}
+            >
+              <span className={classNames('h-2 w-2 rounded-full', isListening ? 'animate-pulse bg-danger' : 'bg-subtle')} />
+              {formatRec(recordSeconds)}
+            </div>
+            <div className="flex flex-col items-center gap-3">
               <button
                 type="button"
                 onClick={isListening ? stopListening : startListening}
-                className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primaryDark text-white shadow-card"
+                aria-pressed={isListening}
+                className={classNames(
+                  'relative flex h-24 w-24 items-center justify-center rounded-full text-white transition-all duration-300 active:scale-95',
+                  isListening
+                    ? 'pulse-ring bg-gradient-to-br from-danger to-danger/70 shadow-[0_8px_30px_rgb(var(--c-danger)/0.45)]'
+                    : 'bg-gradient-to-br from-primary to-primaryDark shadow-primary-glow hover:scale-105',
+                )}
               >
                 <Mic size={36} />
               </button>
               <p className="text-sm text-muted">{t('home.tapHint')}</p>
-              {!isSupported || error ? <p className="text-center text-sm text-danger">{error}</p> : null}
+              {error ? <ErrorAlert className="w-full">{error}</ErrorAlert> : null}
             </div>
-            <div className="min-h-[80px] rounded-app border border-border bg-white p-3 text-sm text-foreground">
+            <div
+              className={classNames(
+                'min-h-[96px] rounded-app border border-dashed p-3.5 text-sm leading-relaxed transition-colors',
+                textValue ? 'border-primary/40 bg-primary/5 text-foreground' : 'border-border bg-surface/60 text-subtle',
+              )}
+            >
               {textValue || t('forms.transcriptPlaceholder')}
             </div>
           </div>
         ) : (
-          <div className="form-group card space-y-3 p-5">
+          <div className="form-group card space-y-3 p-5 animate-fade-in">
             <label htmlFor="symptoms-text" className="form-label">
               {t('formLabels.symptoms')} <span className="text-danger">*</span>
             </label>
             <textarea
               id="symptoms-text"
               {...register('text')}
-              className="textarea min-h-[160px]"
+              className="textarea min-h-[180px]"
               maxLength={maxChars}
-              rows={5}
+              rows={6}
               placeholder={t('formLabels.symptomsPh')}
             />
-            <p className="text-right text-xs text-muted">
-              {t('symptoms.chars', { count: textValue.length, max: maxChars })}
-            </p>
+            <div className="flex items-center gap-3">
+              <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface">
+                <div
+                  className={classNames(
+                    'h-full rounded-full transition-all duration-300',
+                    textValue.length > maxChars * 0.9 ? 'bg-warning' : 'bg-primary',
+                  )}
+                  style={{ width: `${Math.min(100, (textValue.length / maxChars) * 100)}%` }}
+                />
+              </div>
+              <p className="shrink-0 text-xs tabular-nums text-muted">
+                {t('symptoms.chars', { count: textValue.length, max: maxChars })}
+              </p>
+            </div>
           </div>
         )}
 
@@ -1119,10 +1167,7 @@ export const SymptomsPage = () => {
           onClick={handleSubmit((values) => { void goNext(values.text) })}
         >
           {analyzing ? (
-            <span className="flex items-center justify-center gap-2">
-              <LoadingSpinner size={20} />
-              {t('symptoms.analyzing') || 'Analyzing...'}
-            </span>
+            <ThinkingIndicator dotClassName="bg-white" label={t('symptoms.analyzing') || 'Analyzing...'} />
           ) : (
             t('common.next').trim()
           )}
@@ -1288,9 +1333,14 @@ export const AiQuestionsPage = () => {
       <Layout>
         <div className="page-padding space-y-6 bg-background">
           <Header title={t('aiQuestions.title')} onBack={() => navigate('/symptoms')} />
-          <div className="card space-y-3 border-danger/30 bg-danger/5 p-5">
-            <p className="text-sm font-semibold text-danger">{t('symptoms.emergencyTitle') || 'Possible emergency'}</p>
-            <p className="text-sm text-foreground">{emergencyMessage || t('symptoms.emergencyBody')}</p>
+          <div role="alert" className="card flex items-start gap-4 border-danger/40 bg-danger/10 p-5 animate-scale-in">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-danger/20 text-danger">
+              <AlertTriangle size={22} />
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-base font-bold text-danger">{t('symptoms.emergencyTitle') || 'Possible emergency'}</p>
+              <p className="text-sm leading-relaxed text-foreground/90">{emergencyMessage || t('symptoms.emergencyBody')}</p>
+            </div>
           </div>
           <button type="button" className="btn-primary" onClick={() => navigate('/home')}>
             {t('common.ok') || 'OK'}
@@ -1306,11 +1356,18 @@ export const AiQuestionsPage = () => {
         <div className="page-padding space-y-6 bg-background">
           <Header title={t('aiQuestions.title')} onBack={() => navigate('/symptoms')} />
           <div className="card space-y-4 p-5">
-            <p className="text-sm text-muted">
+            <ErrorAlert>
               {questionError || t('symptoms.questionGenFailed') || 'Could not generate follow-up questions.'}
-            </p>
+            </ErrorAlert>
             <button type="button" className="btn-primary" disabled={loadingNext} onClick={() => void retryFirstQuestion()}>
-              {loadingNext ? (t('symptoms.analyzing') || 'Loading...') : (t('common.retry') || 'Retry')}
+              {loadingNext ? (
+                <ThinkingIndicator dotClassName="bg-white" label={t('symptoms.analyzing') || 'Loading...'} />
+              ) : (
+                <span className="flex items-center gap-2">
+                  <RotateCcw size={16} />
+                  {t('common.retry') || 'Retry'}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -1324,10 +1381,19 @@ export const AiQuestionsPage = () => {
       <Layout>
         <div className="page-padding space-y-6 bg-background">
           <Header title={t('aiQuestions.title')} onBack={() => navigate('/symptoms')} />
-          <div className="space-y-6">
-            <section ref={dynSectionRef} className="card space-y-4 p-5">
-              <h2 className="text-base font-semibold text-foreground">{q?.question}</h2>
-              <div className="flex flex-wrap gap-2">
+          <div className="space-y-4">
+            {symptoms ? <ChatBubble from="user">{symptoms}</ChatBubble> : null}
+            {aiQuestions.slice(0, currentIdx).map((prev, idx) => (
+              <div key={`${idx}-${prev.question}`} className="space-y-4">
+                <ChatBubble from="ai">{prev.question}</ChatBubble>
+                {savedDynamic[idx] ? <ChatBubble from="user">{savedDynamic[idx]}</ChatBubble> : null}
+              </div>
+            ))}
+            <section ref={dynSectionRef} key={currentIdx} className="space-y-3 animate-slide-up-fade">
+              <ChatBubble from="ai">
+                <h2 className="font-semibold">{q?.question}</h2>
+              </ChatBubble>
+              <div className="flex flex-wrap gap-2 pl-10">
                 {q?.options?.map((opt) => (
                   <AnswerChip
                     key={opt}
@@ -1337,13 +1403,22 @@ export const AiQuestionsPage = () => {
                   />
                 ))}
               </div>
-              {questionError ? <p className="text-sm text-danger">{questionError}</p> : null}
+              {loadingNext ? (
+                <ChatBubble from="ai" className="animate-fade-in">
+                  <ThinkingIndicator className="py-1" />
+                </ChatBubble>
+              ) : null}
+              {questionError ? <ErrorAlert className="ml-10">{questionError}</ErrorAlert> : null}
             </section>
           </div>
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] z-10 -mx-4 grid grid-cols-2 gap-3 bg-gradient-to-t from-background via-background/95 to-transparent px-4 pb-2 pt-6 sm:-mx-5 sm:px-5">
             <button type="button" className="btn-secondary" onClick={() => navigate('/symptoms')}>{t('common.back')}</button>
             <button type="button" className="btn-primary" disabled={!canNext || loadingNext} onClick={handleNext}>
-              {loadingNext ? (t('symptoms.analyzing') || 'Loading...') : t('common.next')}
+              {loadingNext ? (
+                <ThinkingIndicator dotClassName="bg-white" label={t('symptoms.analyzing') || 'Loading...'} />
+              ) : (
+                t('common.next')
+              )}
             </button>
           </div>
         </div>
@@ -1590,50 +1665,82 @@ export const AdditionalNotesPage = () => {
           onBack={() => navigate('/more-questions')}
         />
 
-        <div className="grid grid-cols-2 rounded-card border border-border bg-white p-1 shadow-card">
+        <div className="relative grid grid-cols-2 rounded-pill border border-border bg-card p-1">
+          <span
+            aria-hidden
+            className={classNames(
+              'absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-pill bg-gradient-primary shadow-primary-glow transition-transform duration-300 ease-out',
+              tab === 'type' ? 'translate-x-full' : 'translate-x-0',
+            )}
+          />
           <button
             type="button"
             onClick={() => setTab('voice')}
+            aria-pressed={tab === 'voice'}
             className={classNames(
-              'rounded-app py-2.5 text-sm font-semibold transition',
-              tab === 'voice' ? 'bg-primary text-white' : 'text-muted',
+              'relative z-10 flex items-center justify-center gap-2 rounded-pill py-2.5 text-sm font-semibold transition-colors',
+              tab === 'voice' ? 'text-white' : 'text-muted hover:text-foreground',
             )}
           >
+            <Mic size={16} />
             {t('forms.voiceInput')}
           </button>
           <button
             type="button"
             onClick={() => setTab('type')}
+            aria-pressed={tab === 'type'}
             className={classNames(
-              'rounded-app py-2.5 text-sm font-semibold transition',
-              tab === 'type' ? 'bg-primary text-white' : 'text-muted',
+              'relative z-10 flex items-center justify-center gap-2 rounded-pill py-2.5 text-sm font-semibold transition-colors',
+              tab === 'type' ? 'text-white' : 'text-muted hover:text-foreground',
             )}
           >
+            <Keyboard size={16} />
             {t('forms.typeInput')}
           </button>
         </div>
 
         {tab === 'voice' ? (
-          <div className="card space-y-5 p-5">
-            <VoiceWaveform />
-            <div className="text-center text-sm text-muted">{formatRec(recordSeconds)}</div>
-            <div className="flex flex-col items-center gap-2">
+          <div className="card space-y-5 p-5 animate-fade-in">
+            <div className={classNames('transition-opacity duration-300', isListening ? 'opacity-100' : 'opacity-40')}>
+              <VoiceWaveform />
+            </div>
+            <div
+              className={classNames(
+                'mx-auto flex w-fit items-center gap-2 rounded-pill px-3 py-1 font-mono text-sm tabular-nums',
+                isListening ? 'bg-danger/15 text-danger' : 'bg-surface text-muted',
+              )}
+            >
+              <span className={classNames('h-2 w-2 rounded-full', isListening ? 'animate-pulse bg-danger' : 'bg-subtle')} />
+              {formatRec(recordSeconds)}
+            </div>
+            <div className="flex flex-col items-center gap-3">
               <button
                 type="button"
                 onClick={isListening ? stopListening : startListening}
-                className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primaryDark text-white shadow-card transition active:scale-[0.96]"
+                aria-pressed={isListening}
+                className={classNames(
+                  'relative flex h-24 w-24 items-center justify-center rounded-full text-white transition-all duration-300 active:scale-95',
+                  isListening
+                    ? 'pulse-ring bg-gradient-to-br from-danger to-danger/70 shadow-[0_8px_30px_rgb(var(--c-danger)/0.45)]'
+                    : 'bg-gradient-to-br from-primary to-primaryDark shadow-primary-glow hover:scale-105',
+                )}
               >
                 <Mic size={36} />
               </button>
               <p className="text-sm text-muted">{t('additionalNotes.tapSpeakOrType')}</p>
-              {!isSupported || error ? <p className="text-center text-sm text-danger">{error}</p> : null}
+              {error ? <ErrorAlert className="w-full">{error}</ErrorAlert> : null}
             </div>
-            <div className="min-h-[80px] rounded-app border border-border bg-white p-3 text-sm text-foreground">
+            <div
+              className={classNames(
+                'min-h-[96px] rounded-app border border-dashed p-3.5 text-sm leading-relaxed transition-colors',
+                textValue ? 'border-primary/40 bg-primary/5 text-foreground' : 'border-border bg-surface/60 text-subtle',
+              )}
+            >
               {textValue || t('forms.transcriptPlaceholder')}
             </div>
           </div>
         ) : (
-          <div className="form-group card space-y-3 p-5">
+          <div className="form-group card space-y-3 p-5 animate-fade-in">
             <label htmlFor="additional-notes-text" className="form-label">{t('formLabels.additionalNotes')}</label>
             <textarea
               id="additional-notes-text"
@@ -1797,20 +1904,20 @@ export const SummaryPage = () => {
           <div className="card space-y-3 p-5">
             <h3 className="text-sm font-semibold text-foreground">AI Analysis</h3>
             <div className="space-y-2">
-              <div className="flex items-center justify-between rounded-app bg-[#E8F0FE] px-3 py-2">
+              <div className="flex items-center justify-between rounded-app bg-primary/15 px-3 py-2">
                 <span className="text-sm text-muted">Possible Condition</span>
                 <span className="text-sm font-semibold text-primary">{disease}</span>
               </div>
               {confidence > 0 ? (
-                <div className="flex items-center justify-between rounded-app bg-[#F0FDF4] px-3 py-2">
+                <div className="flex items-center justify-between rounded-app bg-success/10 px-3 py-2">
                   <span className="text-sm text-muted">Confidence</span>
                   <span className="text-sm font-semibold text-success">{confidence}%</span>
                 </div>
               ) : null}
               {aiSpecialization ? (
-                <div className="flex items-center justify-between rounded-app bg-[#FFF9F0] px-3 py-2">
+                <div className="flex items-center justify-between rounded-app bg-warning/10 px-3 py-2">
                   <span className="text-sm text-muted">AI Recommended Specialist</span>
-                  <span className="text-sm font-semibold text-[#D97706]">{aiSpecialization}</span>
+                  <span className="text-sm font-semibold text-warning">{aiSpecialization}</span>
                 </div>
               ) : null}
             </div>
@@ -1825,14 +1932,14 @@ export const SummaryPage = () => {
 
         <div className="card space-y-3 p-5">
           <h3 className="text-sm font-semibold text-foreground">{t('summary.recommendedSpecialist')}</h3>
-          <div className="flex items-start gap-3 rounded-app bg-[#E8F0FE] p-4">
-            <Stethoscope size={22} className="mt-0.5 shrink-0 text-[#1A73E8]" />
+          <div className="flex items-start gap-3 rounded-app bg-primary/15 p-4">
+            <Stethoscope size={22} className="mt-0.5 shrink-0 text-primary" />
             <div>
-              <p className="font-semibold text-[#1A73E8]">
+              <p className="font-semibold text-primary">
                 {t('summary.recommendPrefix', { specialization: recommendedSpecialization })}
               </p>
               <p className="mt-1 text-xs text-muted">{t('summary.recommendBasedOn')}</p>
-              <p className="mt-1 text-xs text-[#6B7280]">
+              <p className="mt-1 text-xs text-muted">
                 {t('summary.recommendSymptoms', { symptoms: symptomTags.join(', ') })}
               </p>
             </div>
@@ -1944,8 +2051,8 @@ export const SubmissionSuccessPage = () => {
         </div>
         <h1 className="text-2xl font-bold text-foreground">{t('submissionSuccess.title')}</h1>
         <p className="mt-2 max-w-[280px] text-sm leading-relaxed text-muted">{t('submissionSuccess.subtitle', { doctorName: doctor.name })}</p>
-        <div className="mt-6 w-full overflow-hidden rounded-2xl border border-border bg-white shadow-card">
-          <div className="h-1.5 w-full bg-gradient-to-r from-success to-[#1e8c3c]" />
+        <div className="mt-6 w-full overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+          <div className="h-1.5 w-full bg-gradient-to-r from-success to-success/70" />
           <div className="space-y-4 p-5 text-left">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-lg font-bold text-primary">
@@ -2179,7 +2286,7 @@ export const DoctorConsultationPage = () => {
 
       {sheetOpen ? (
         <div className="fixed inset-0 z-30 bg-black/30">
-          <div className="absolute bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 rounded-t-3xl bg-white p-5">
+          <div className="absolute bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 rounded-t-3xl bg-card p-5">
             <p className="mb-3 text-lg font-semibold">{t('doctorReview.needMoreInfoTitle')}</p>
             <form
               className="space-y-4"
@@ -2305,7 +2412,7 @@ export const CreatePrescriptionPage = () => {
         <Header title={t('createPrescription.title')} onBack={() => navigate(`/doctor-consultation/${id}`)} />
 
         {consultation ? (
-          <div className="card rounded-app border border-dashed border-border bg-slate-50 p-4 text-sm">
+          <div className="card rounded-app border border-dashed border-border bg-surface p-4 text-sm">
             <p className="font-semibold text-foreground">{consultation.patientName}</p>
             <p className="text-muted">
               {consultation.patientAge} · {consultation.patientGender}
@@ -2645,7 +2752,7 @@ export const PatientPrescriptionPage = () => {
           title={t('patientPrescription.title')}
           onBack={() => window.history.back()}
           right={
-            <button type="button" onClick={() => void handleDownload()} className="rounded-full border border-border p-2">
+            <button type="button" onClick={() => void handleDownload()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
               <Download size={18} />
             </button>
           }
@@ -2655,13 +2762,13 @@ export const PatientPrescriptionPage = () => {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-semibold">{prescription.doctorName}</p>
-              <p className="text-sm text-slate-500">{prescription.qualification}</p>
-              <p className="text-sm text-slate-500">{prescription.registrationNumber}</p>
+              <p className="text-sm text-muted">{prescription.qualification}</p>
+              <p className="text-sm text-muted">{prescription.registrationNumber}</p>
             </div>
-            <p className="text-right text-sm text-slate-500">{formatDateTime(prescription.dateTime ?? getNowIso())}</p>
+            <p className="text-right text-sm text-muted">{formatDateTime(prescription.dateTime ?? getNowIso())}</p>
           </div>
           <div className="my-4 h-px bg-border" />
-          <div className="flex justify-between text-sm text-slate-600">
+          <div className="flex justify-between text-sm text-muted">
             <span>{prescription.patientName}</span>
             <span>
               {prescription.patientAge} • {prescription.patientGender}
@@ -2671,7 +2778,7 @@ export const PatientPrescriptionPage = () => {
 
         <div className="card p-5">
           <p className="font-semibold">{t('patientPrescription.diagnosis')}</p>
-          <p className="mt-2 text-slate-600">{prescription.diagnosis}</p>
+          <p className="mt-2 text-muted">{prescription.diagnosis}</p>
         </div>
 
         <div className="space-y-3">
@@ -2679,7 +2786,7 @@ export const PatientPrescriptionPage = () => {
           {prescription.medicines.map((item) => (
             <div key={`${item.name}-${item.dosage}`} className="card p-4">
               <p className="font-semibold">{item.name}</p>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted">
                 {item.dosage} • {item.frequency} • {item.duration}
               </p>
             </div>
@@ -2688,7 +2795,7 @@ export const PatientPrescriptionPage = () => {
 
         <div className="card p-5">
           <p className="font-semibold">{t('patientPrescription.advice')}</p>
-          <p className="mt-2 text-slate-600">{prescription.advice}</p>
+          <p className="mt-2 text-muted">{prescription.advice}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -2707,7 +2814,7 @@ export const PatientPrescriptionPage = () => {
           </button>
         </div>
 
-        <div className="mx-auto flex h-12 w-48 items-center justify-center rounded-xl border border-dashed border-border text-sm text-slate-400">
+        <div className="mx-auto flex h-12 w-48 items-center justify-center rounded-xl border border-dashed border-border text-sm text-subtle">
           {t('patientPrescription.signature')}
         </div>
       </div>
@@ -2746,11 +2853,11 @@ export const PdfSharePage = () => {
           <div className="flex items-start justify-between">
             <div>
               <p className="font-semibold">{prescription.doctorName}</p>
-              <p className="text-sm text-slate-500">{prescription.qualification}</p>
+              <p className="text-sm text-muted">{prescription.qualification}</p>
             </div>
-            <p className="text-sm text-slate-500">{formatDate(prescription.dateTime ?? getNowIso())}</p>
+            <p className="text-sm text-muted">{formatDate(prescription.dateTime ?? getNowIso())}</p>
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm text-slate-600">
+          <div className="grid grid-cols-2 gap-3 text-sm text-muted">
             <span>{prescription.patientName}</span>
             <span>
               {prescription.patientAge} • {prescription.patientGender}
@@ -2758,12 +2865,12 @@ export const PdfSharePage = () => {
           </div>
           <div>
             <p className="font-semibold">{t('patientPrescription.diagnosis')}</p>
-            <p className="mt-1 text-slate-600">{prescription.diagnosis}</p>
+            <p className="mt-1 text-muted">{prescription.diagnosis}</p>
           </div>
           <div>
             <p className="font-semibold">{t('patientPrescription.medicines')}</p>
             <div className="mt-2 overflow-hidden rounded-xl border border-border">
-              <div className="grid grid-cols-4 gap-2 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">
+              <div className="grid grid-cols-4 gap-2 bg-surface px-3 py-2 text-xs font-semibold text-muted">
                 <span>Medicine</span>
                 <span>Dosage</span>
                 <span>Frequency</span>
@@ -2772,7 +2879,7 @@ export const PdfSharePage = () => {
               {prescription.medicines.map((item: Prescription['medicines'][number]) => (
                 <div
                   key={`${item.name}-${item.dosage}`}
-                  className="grid grid-cols-4 gap-2 border-t border-border px-3 py-3 text-sm text-slate-600"
+                  className="grid grid-cols-4 gap-2 border-t border-border px-3 py-3 text-sm text-muted"
                 >
                   <span>{item.name}</span>
                   <span>{item.dosage}</span>
@@ -2784,7 +2891,7 @@ export const PdfSharePage = () => {
           </div>
           <div>
             <p className="font-semibold">{t('patientPrescription.advice')}</p>
-            <p className="mt-1 text-slate-600">{prescription.advice}</p>
+            <p className="mt-1 text-muted">{prescription.advice}</p>
           </div>
         </div>
 
@@ -2882,7 +2989,7 @@ export const FollowUpPage = () => {
             {t('formLabels.appointmentDate')} <span className="text-danger">*</span>
           </p>
         <div className="card p-5" role="group" aria-labelledby="followup-appointment-date-label">
-          <div className="mb-4 grid grid-cols-7 gap-2 text-center text-xs font-semibold text-slate-400">
+          <div className="mb-4 grid grid-cols-7 gap-2 text-center text-xs font-semibold text-subtle">
             {days.slice(0, 7).map((day) => (
               <span key={day.toISOString()}>{dayFormatter.format(day).slice(0, 3)}</span>
             ))}
@@ -2900,7 +3007,7 @@ export const FollowUpPage = () => {
                   className={classNames(
                     'flex h-10 items-center justify-center rounded-xl border text-sm',
                     isSelected ? 'border-primary bg-primary text-white' : 'border-border',
-                    isPast ? 'pointer-events-none text-slate-300' : 'text-slate-700',
+                    isPast ? 'pointer-events-none text-subtle' : 'text-foreground',
                   )}
                 >
                   {day.getDate()}
@@ -3039,7 +3146,7 @@ export const HistoryPage = () => {
     <Layout>
       <div className="page-padding space-y-5">
         <Header title={t('history.title')} />
-        <div className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1">
+        <div className="grid grid-cols-2 rounded-2xl bg-surface p-1">
           {[
             { key: 'consultations', label: t('history.consultations') },
             { key: 'prescriptions', label: t('history.prescriptions') },
@@ -3050,7 +3157,7 @@ export const HistoryPage = () => {
               onClick={() => setTab(item.key as 'consultations' | 'prescriptions')}
               className={classNames(
                 'rounded-xl px-3 py-2 text-sm font-medium',
-                tab === item.key ? 'bg-white text-primary shadow-sm' : 'text-slate-500',
+                tab === item.key ? 'bg-card text-primary shadow-sm' : 'text-muted',
               )}
             >
               {item.label}
@@ -3064,7 +3171,7 @@ export const HistoryPage = () => {
           consultations.length ? (
             <div className="space-y-3">
               {consultations.map((item) => (
-                <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-white shadow-card transition-all hover:shadow-card-hover">
+                <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all hover:shadow-card-hover">
                   <div className="border-l-4 border-primary p-4">
                     <p className="text-xs font-medium text-muted">{formatDate(item.createdAt)}</p>
                     <p className="mt-1 font-semibold text-foreground">{item.possibleCause ?? item.aiSummary?.possibleCause}</p>
@@ -3089,7 +3196,7 @@ export const HistoryPage = () => {
                     {item.caseStatus === 'NEED_MORE_INFO' ? (
                       <button
                         type="button"
-                        className="w-full py-2.5 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-50 active:scale-[0.97]"
+                        className="w-full py-2.5 text-sm font-semibold text-warning transition-colors hover:bg-warning/10 active:scale-[0.97]"
                         onClick={() => navigate('/notifications')}
                       >
                         {t('history.replyToDoctor')}
@@ -3099,7 +3206,7 @@ export const HistoryPage = () => {
                         type="button"
                         className={classNames(
                           'w-full py-2.5 text-sm font-semibold transition-colors active:scale-[0.97]',
-                          item.caseStatus === 'CLOSED' ? 'text-muted hover:bg-slate-50' : 'text-primary hover:bg-primary/5',
+                          item.caseStatus === 'CLOSED' ? 'text-muted hover:bg-surface' : 'text-primary hover:bg-primary/5',
                         )}
                         onClick={() => openPrescription(item.id)}
                       >
@@ -3129,7 +3236,7 @@ export const HistoryPage = () => {
             <div className="space-y-3">
               {prescriptions.filter((item) => item.status === 'APPROVED').map((item) => (
                 <div key={item.id} className="card p-4">
-                  <p className="text-sm text-slate-400">{formatDate(item.dateTime ?? getNowIso())}</p>
+                  <p className="text-sm text-subtle">{formatDate(item.dateTime ?? getNowIso())}</p>
                   <p className="mt-1 font-medium">{item.diagnosis}</p>
                   <p className="mt-1 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                     {item.medicines.length} meds
@@ -3174,7 +3281,7 @@ const simpleScreen = (
     <div className="page-padding flex min-h-screen flex-col items-center justify-center text-center">
       <div className="rounded-full bg-primary/10 p-5 text-primary">{icon}</div>
       <h1 className="mt-6 text-2xl font-semibold">{title}</h1>
-      {subtitle ? <p className="mt-2 text-slate-500">{subtitle}</p> : null}
+      {subtitle ? <p className="mt-2 text-muted">{subtitle}</p> : null}
       <div className="mt-8 w-full space-y-3">
         <button type="button" className="btn-primary" onClick={primaryAction}>
           {primaryLabel}
@@ -3254,7 +3361,7 @@ export const DoctorCalendarPage = () => {
                 onClick={() => setSelectedDay(day)}
                 className={classNames(
                   'relative flex h-10 flex-col items-center justify-center rounded-app text-sm font-medium',
-                  selectedDay === day ? 'bg-primary text-white' : 'bg-white text-foreground shadow-sm',
+                  selectedDay === day ? 'bg-primary text-white' : 'bg-card text-foreground shadow-sm',
                 )}
               >
                 {day}
@@ -3453,7 +3560,7 @@ export const DoctorProfilePage = () => {
     <Layout>
       <div className="space-y-5 bg-background pb-8">
         {/* Hero gradient header */}
-        <div className="relative rounded-b-[32px] bg-gradient-to-br from-[#1557B0] to-[#0D47A1] px-5 pb-8 pt-6 shadow-lg">
+        <div className="relative rounded-b-[32px] bg-gradient-to-br from-primaryDark to-primaryDark px-5 pb-8 pt-6 shadow-lg">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold text-white">{t('doctorNav.profileTitle')}</h1>
             <button
@@ -3691,7 +3798,7 @@ export const DoctorProfilePage = () => {
           >
             <span
               className={classNames(
-                'absolute top-1 h-6 w-6 rounded-full bg-white shadow transition',
+                'absolute top-1 h-6 w-6 rounded-full bg-card shadow transition',
                 online ? 'left-7' : 'left-1',
               )}
             />

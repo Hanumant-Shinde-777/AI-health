@@ -1,8 +1,41 @@
-import { Calendar, FileText, History, Home, User, Users } from 'lucide-react'
+import { Calendar, FileText, History, Home, User, Users, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { classNames } from '@/utils'
+
+interface NavItem {
+  key: string
+  label: string
+  icon: LucideIcon
+  to: string
+  active: boolean
+}
+
+const NavBar = ({ items, onNavigate }: { items: NavItem[]; onNavigate: (to: string) => void }) => (
+  <nav className="fixed bottom-0 left-1/2 z-20 w-full max-w-[430px] -translate-x-1/2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <div className="flex h-16 items-stretch gap-1 rounded-[22px] border border-border/80 bg-card/85 p-1.5 shadow-[0_10px_36px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+      {items.map((item) => {
+        const Icon = item.icon
+        return (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => onNavigate(item.to)}
+            aria-current={item.active ? 'page' : undefined}
+            className={classNames(
+              'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] font-medium transition-all duration-200 active:scale-95',
+              item.active ? 'bg-primary/15 text-primary' : 'text-muted hover:bg-surface hover:text-foreground',
+            )}
+          >
+            <Icon size={20} strokeWidth={item.active ? 2.4 : 1.8} />
+            <span className={classNames('max-w-full truncate px-1', item.active ? 'font-semibold' : '')}>{item.label}</span>
+          </button>
+        )
+      })}
+    </div>
+  </nav>
+)
 
 const BottomNav = () => {
   const { pathname } = useLocation()
@@ -42,35 +75,7 @@ const BottomNav = () => {
       },
     ]
 
-    return (
-      <nav className="fixed bottom-0 left-1/2 z-20 flex h-16 w-full max-w-[430px] -translate-x-1/2 border-t border-border bg-white/95 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md">
-        {doctorItems.map((item) => {
-          const Icon = item.icon
-          return (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => navigate(item.to)}
-              className={classNames(
-                'relative flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-all duration-200',
-                item.active ? 'text-primary' : 'text-muted',
-              )}
-            >
-              {item.active && (
-                <span className="absolute top-0 left-1/2 h-[3px] w-8 -translate-x-1/2 rounded-b-full bg-gradient-to-r from-primary to-primaryDark" />
-              )}
-              <div className={classNames(
-                'flex items-center justify-center rounded-xl px-3 py-1 transition-all duration-200',
-                item.active ? 'bg-primary/10' : '',
-              )}>
-                <Icon size={20} strokeWidth={item.active ? 2.5 : 1.75} />
-              </div>
-              <span className={item.active ? 'font-semibold' : ''}>{item.label}</span>
-            </button>
-          )
-        })}
-      </nav>
-    )
+    return <NavBar items={doctorItems} onNavigate={navigate} />
   }
 
   const items = [
@@ -106,36 +111,7 @@ const BottomNav = () => {
     },
   ]
 
-  return (
-    <nav className="fixed bottom-0 left-1/2 z-20 flex h-16 w-full max-w-[430px] -translate-x-1/2 border-t border-border bg-white/95 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md">
-      {items.map((item) => {
-        const Icon = item.icon
-
-        return (
-          <button
-            key={item.key}
-            type="button"
-            onClick={() => navigate(item.to)}
-            className={classNames(
-              'relative flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-all duration-200',
-              item.active ? 'text-primary' : 'text-muted',
-            )}
-          >
-            {item.active && (
-              <span className="absolute top-0 left-1/2 h-[3px] w-8 -translate-x-1/2 rounded-b-full bg-gradient-to-r from-primary to-primaryDark" />
-            )}
-            <div className={classNames(
-              'flex items-center justify-center rounded-xl px-3 py-1 transition-all duration-200',
-              item.active ? 'bg-primary/10' : '',
-            )}>
-              <Icon size={20} strokeWidth={item.active ? 2.5 : 1.75} />
-            </div>
-            <span className={item.active ? 'font-semibold' : ''}>{item.label}</span>
-          </button>
-        )
-      })}
-    </nav>
-  )
+  return <NavBar items={items} onNavigate={navigate} />
 }
 
 export default BottomNav

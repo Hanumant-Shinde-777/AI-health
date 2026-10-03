@@ -83,7 +83,7 @@ const MedicalHistoryForm = ({ initial, submitLabel, loading = false, onSubmit }:
                 'rounded-[50px] border px-4 py-2 text-sm font-semibold transition active:scale-[0.96]',
                 selectedDiseases.includes(item)
                   ? 'border-primary bg-primary text-white'
-                  : 'border-border bg-white text-[#374151]',
+                  : 'border-border bg-card text-foreground',
               )}
             >
               {item}
@@ -109,7 +109,7 @@ const MedicalHistoryForm = ({ initial, submitLabel, loading = false, onSubmit }:
                 'rounded-[50px] border px-4 py-2 text-sm font-semibold transition active:scale-[0.96]',
                 hasAllergies === item.key
                   ? 'border-primary bg-primary text-white'
-                  : 'border-border bg-white text-[#374151]',
+                  : 'border-border bg-card text-foreground',
               )}
             >
               {item.label}

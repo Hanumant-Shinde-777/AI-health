@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState, type PropsWithChildren } from 'react'
+import { Info } from 'lucide-react'
 
 interface ToastItem {
   id: number
@@ -30,13 +31,18 @@ export const ToastProvider = ({ children }: PropsWithChildren) => {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="pointer-events-none fixed left-1/2 top-4 z-50 flex w-full max-w-[430px] -translate-x-1/2 flex-col gap-2 px-4">
+      <div
+        className="pointer-events-none fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-50 flex w-full max-w-[430px] -translate-x-1/2 flex-col gap-2 px-4"
+        aria-live="polite"
+      >
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="rounded-xl bg-slate-900 px-4 py-3 text-center text-sm text-white shadow-lg"
+            role="status"
+            className="flex items-start gap-3 rounded-app border border-border bg-surface/95 px-4 py-3 text-sm text-foreground shadow-[0_12px_32px_rgba(0,0,0,0.45)] backdrop-blur-md animate-toast-in"
           >
-            {toast.message}
+            <Info size={18} className="mt-0.5 shrink-0 text-primary" />
+            <span className="flex-1 leading-snug">{toast.message}</span>
           </div>
         ))}
       </div>

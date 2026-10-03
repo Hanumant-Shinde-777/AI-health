@@ -227,12 +227,12 @@ export const CredentialLoginForm = ({
 
   return (
     <>
-      <div className="flex rounded-app border border-border bg-slate-50 p-1">
+      <div className="flex rounded-app border border-border bg-surface p-1">
         <button
           type="button"
           className={classNames(
             'flex-1 rounded-app py-2 text-xs font-semibold sm:text-sm',
-            method === 'mobile' ? 'bg-white shadow-card' : 'text-muted',
+            method === 'mobile' ? 'bg-card shadow-card' : 'text-muted',
           )}
           onClick={() => switchMethod('mobile')}
         >
@@ -242,7 +242,7 @@ export const CredentialLoginForm = ({
           type="button"
           className={classNames(
             'flex-1 rounded-app py-2 text-xs font-semibold sm:text-sm',
-            method === 'email' ? 'bg-white shadow-card' : 'text-muted',
+            method === 'email' ? 'bg-card shadow-card' : 'text-muted',
           )}
           onClick={() => switchMethod('email')}
         >
@@ -259,13 +259,13 @@ export const CredentialLoginForm = ({
             mobileForm.formState.errors.mobile ? t('login.invalidMobile') : loginError ?? undefined
           }
         >
-          <div className={`flex h-11 w-full items-stretch overflow-hidden rounded-app border bg-white text-sm transition-all duration-200 focus-within:[box-shadow:0_0_0_3px_rgba(26,115,232,0.14)] focus-within:border-[#1A73E8] ${loading || otpSent ? 'border-[#E5E7EB] opacity-60' : 'border-[#E5E7EB]'}`}>
-            <span className="flex select-none items-center border-r border-[#E5E7EB] bg-slate-50 px-3 font-medium text-muted">+91</span>
+          <div className={`flex h-11 w-full items-stretch overflow-hidden rounded-app border bg-card text-sm transition-all duration-200 focus-within:[box-shadow:0_0_0_3px_rgba(26,115,232,0.14)] focus-within:border-primary ${loading || otpSent ? 'border-border opacity-60' : 'border-border'}`}>
+            <span className="flex select-none items-center border-r border-border bg-surface px-3 font-medium text-muted">+91</span>
             <input
               id={`auth-login-${userRole}-mobile`}
               {...mobileForm.register('mobile')}
               maxLength={10}
-              className="flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-[#9CA3AF]"
+              className="flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-subtle"
               inputMode="numeric"
               placeholder="10-digit number"
               disabled={loading || otpSent}

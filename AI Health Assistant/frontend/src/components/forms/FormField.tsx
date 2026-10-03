@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { AlertCircle } from 'lucide-react'
 import { classNames } from '@/utils'
 
 interface FormFieldProps {
@@ -26,8 +27,13 @@ const FormField = ({
       {required ? <span className="text-danger"> *</span> : null}
     </label>
     {children}
-    {error ? <p className="mt-1 text-xs text-danger">{error}</p> : null}
-    {hint && !error ? <p className="mt-1 text-xs text-[#9CA3AF]">{hint}</p> : null}
+    {error ? (
+      <p role="alert" className="mt-1.5 flex items-center gap-1 text-xs font-medium text-danger animate-fade-in">
+        <AlertCircle size={13} className="shrink-0" />
+        {error}
+      </p>
+    ) : null}
+    {hint && !error ? <p className="mt-1 text-xs text-subtle">{hint}</p> : null}
   </div>
 )
 

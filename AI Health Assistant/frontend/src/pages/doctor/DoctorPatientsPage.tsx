@@ -90,12 +90,12 @@ const DoctorPatientsPage = () => {
         <h1 className="text-xl font-bold text-foreground">{t('doctorPatients.title')}</h1>
 
         {todayOnly ? (
-          <span className="inline-flex rounded-full bg-[#F0F9FF] px-3 py-1 text-xs font-semibold text-[#075985]">
+          <span className="inline-flex rounded-full bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-300">
             {t('doctorPatients.filterToday')}
           </span>
         ) : null}
 
-        <div className="grid grid-cols-3 gap-1 rounded-card border border-border bg-white p-1 shadow-card">
+        <div className="grid grid-cols-3 gap-1 rounded-card border border-border bg-card p-1 shadow-card">
           {(['ALL', 'PENDING', 'REVIEWED'] as const).map((key) => (
             <button
               key={key}
@@ -139,7 +139,7 @@ const DoctorPatientsPage = () => {
           {filtered.map((item) => {
             const reviewed = isReviewedCase(item)
             return (
-              <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-white shadow-card transition-all hover:shadow-card-hover">
+              <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all hover:shadow-card-hover">
                 <div className="flex gap-3 p-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primaryDark text-sm font-bold text-white shadow-sm">
                     {initials(item.patientName)}
@@ -147,7 +147,7 @@ const DoctorPatientsPage = () => {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-bold text-foreground">{item.patientName}</p>
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-muted">{formatCaseRelativeTime(item.createdAt)}</span>
+                      <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium text-muted">{formatCaseRelativeTime(item.createdAt)}</span>
                     </div>
                     <p className="text-sm text-muted">
                       {item.patientAge} · {item.patientGender}

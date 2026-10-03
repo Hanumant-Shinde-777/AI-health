@@ -144,12 +144,12 @@ const AuthFlowHeader = ({
   <div className="mb-6 flex items-start justify-between gap-3">
     <div className="flex items-start gap-3">
       {onBack ? (
-        <button type="button" onClick={onBack} className="rounded-full border border-border p-2">
+        <button type="button" onClick={onBack} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
           <ArrowLeft size={18} />
         </button>
       ) : null}
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+        <h1 className="text-[22px] font-bold leading-tight tracking-tight text-foreground sm:text-2xl">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-muted">{subtitle}</p> : null}
       </div>
     </div>
@@ -190,7 +190,7 @@ export const RoleSelectionPage = () => {
               dispatch(setRole('PATIENT'))
               navigate('/login')
             }}
-            className="group flex w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/15 bg-white p-5 text-left shadow-card transition-all duration-200 hover:border-primary/30 hover:shadow-card-hover active:scale-[0.99]"
+            className="group flex w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/15 bg-card p-5 text-left shadow-card transition-all duration-200 hover:border-primary/30 hover:shadow-card-hover active:scale-[0.99]"
           >
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary transition-all group-hover:from-primary/30 group-hover:to-primary/10">
               <UserRound size={28} />
@@ -209,7 +209,7 @@ export const RoleSelectionPage = () => {
               dispatch(setRole('DOCTOR'))
               navigate('/login')
             }}
-            className="group flex w-full items-center gap-4 overflow-hidden rounded-2xl border border-success/15 bg-white p-5 text-left shadow-card transition-all duration-200 hover:border-success/30 hover:shadow-card-hover active:scale-[0.99]"
+            className="group flex w-full items-center gap-4 overflow-hidden rounded-2xl border border-success/15 bg-card p-5 text-left shadow-card transition-all duration-200 hover:border-success/30 hover:shadow-card-hover active:scale-[0.99]"
           >
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-success/20 to-success/5 text-success transition-all group-hover:from-success/30 group-hover:to-success/10">
               <Stethoscope size={28} />
@@ -343,12 +343,12 @@ export const AuthPage = () => {
           right={<RoleBadge role={userRole} />}
         />
 
-        <div className="mb-6 flex rounded-xl border border-border bg-slate-50/80 p-1 shadow-sm">
+        <div className="mb-6 flex rounded-xl border border-border bg-surface/80 p-1 shadow-sm">
           <button
             type="button"
             className={classNames(
               'flex-1 rounded-[10px] py-2.5 text-sm font-semibold transition-all duration-200',
-              tab === 'login' ? 'bg-white shadow-card text-foreground' : 'text-muted hover:text-foreground',
+              tab === 'login' ? 'bg-card shadow-card text-foreground' : 'text-muted hover:text-foreground',
             )}
             onClick={() => switchTab('login')}
           >
@@ -358,7 +358,7 @@ export const AuthPage = () => {
             type="button"
             className={classNames(
               'flex-1 rounded-[10px] py-2.5 text-sm font-semibold transition-all duration-200',
-              tab === 'register' ? 'bg-white shadow-card text-foreground' : 'text-muted hover:text-foreground',
+              tab === 'register' ? 'bg-card shadow-card text-foreground' : 'text-muted hover:text-foreground',
             )}
             onClick={() => switchTab('register')}
           >
@@ -427,13 +427,13 @@ export const AuthPage = () => {
                     />
                   </FormField>
                   <FormField label={t('formLabels.phoneNumber')} htmlFor="auth-reg-doctor-mobile" required error={doctorRegForm.formState.errors.mobile ? t('login.invalidMobile') : undefined}>
-                    <div className="flex h-11 w-full items-stretch overflow-hidden rounded-app border border-[#E5E7EB] bg-white text-sm transition-all duration-200 focus-within:[box-shadow:0_0_0_3px_rgba(26,115,232,0.14)] focus-within:border-[#1A73E8]">
-                      <span className="flex select-none items-center border-r border-[#E5E7EB] bg-slate-50 px-3 font-medium text-muted">+91</span>
+                    <div className="flex h-11 w-full items-stretch overflow-hidden rounded-app border border-border bg-card text-sm transition-all duration-200 focus-within:[box-shadow:0_0_0_3px_rgba(26,115,232,0.14)] focus-within:border-primary">
+                      <span className="flex select-none items-center border-r border-border bg-surface px-3 font-medium text-muted">+91</span>
                       <input
                         id="auth-reg-doctor-mobile"
                         {...doctorRegForm.register('mobile')}
                         maxLength={10}
-                        className="flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-[#9CA3AF]"
+                        className="flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-subtle"
                         inputMode="numeric"
                         autoComplete="off"
                         placeholder="10-digit number"
@@ -528,13 +528,13 @@ export const AuthPage = () => {
                     />
                   </FormField>
                   <FormField label={t('formLabels.phoneNumber')} htmlFor="auth-reg-patient-mobile" required error={patientRegForm.formState.errors.mobile ? t('login.invalidMobile') : undefined}>
-                    <div className="flex h-11 w-full items-stretch overflow-hidden rounded-app border border-[#E5E7EB] bg-white text-sm transition-all duration-200 focus-within:[box-shadow:0_0_0_3px_rgba(26,115,232,0.14)] focus-within:border-[#1A73E8]">
-                      <span className="flex select-none items-center border-r border-[#E5E7EB] bg-slate-50 px-3 font-medium text-muted">+91</span>
+                    <div className="flex h-11 w-full items-stretch overflow-hidden rounded-app border border-border bg-card text-sm transition-all duration-200 focus-within:[box-shadow:0_0_0_3px_rgba(26,115,232,0.14)] focus-within:border-primary">
+                      <span className="flex select-none items-center border-r border-border bg-surface px-3 font-medium text-muted">+91</span>
                       <input
                         id="auth-reg-patient-mobile"
                         {...patientRegForm.register('mobile')}
                         maxLength={10}
-                        className="flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-[#9CA3AF]"
+                        className="flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-subtle"
                         inputMode="numeric"
                         autoComplete="off"
                         placeholder="10-digit number"
@@ -781,14 +781,14 @@ export const PatientRegistrationPage = () => {
             <div key={n} className="flex items-center gap-2">
               <div className={classNames(
                 'flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all',
-                n <= step ? 'bg-gradient-to-br from-primary to-primaryDark text-white shadow-primary-glow' : 'bg-slate-100 text-muted',
+                n <= step ? 'bg-gradient-to-br from-primary to-primaryDark text-white shadow-primary-glow' : 'bg-surface text-muted',
               )}>
                 {n}
               </div>
               {n < 2 && (
                 <div className={classNames(
                   'h-1 w-12 rounded-full transition-all',
-                  step >= 2 ? 'bg-primary' : 'bg-slate-200',
+                  step >= 2 ? 'bg-primary' : 'bg-border',
                 )} />
               )}
             </div>
@@ -1038,7 +1038,7 @@ export const DoctorRegistrationPage = () => {
   if (showRegistrationSuccess) {
     return (
       <Layout hideNav>
-        <div className="min-h-screen bg-[#F9FAFB]" />
+        <div className="min-h-screen bg-background" />
         <RegistrationSuccessModal
           open
           isDoctor
@@ -1050,7 +1050,7 @@ export const DoctorRegistrationPage = () => {
 
   return (
     <Layout hideNav>
-      <div className="min-h-screen bg-[#F9FAFB] pb-8">
+      <div className="min-h-screen bg-background pb-8">
         <div className="page-padding space-y-5 pt-4">
           <AuthFlowHeader
             title={t('doctorReg.title')}
@@ -1525,7 +1525,7 @@ export const NotificationsPage = ({ role: roleProp }: { role?: 'PATIENT' | 'DOCT
                   if (item.route) navigate(item.route)
                 }}
                 className={classNames(
-                  'w-full overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all active:scale-[0.99]',
+                  'w-full overflow-hidden rounded-2xl border bg-card text-left shadow-sm transition-all active:scale-[0.99]',
                   !item.isRead ? 'border-primary/25 shadow-[0_2px_12px_rgba(26,115,232,0.08)]' : 'border-border',
                 )}
               >
@@ -1540,7 +1540,7 @@ export const NotificationsPage = ({ role: roleProp }: { role?: 'PATIENT' | 'DOCT
                       )}
                       <p className="font-semibold text-foreground">{item.title}</p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-muted">
+                    <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium text-muted">
                       {formatRelativeTime(item.createdAt)}
                     </span>
                   </div>
