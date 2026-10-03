@@ -117,3 +117,16 @@ model LoginLock {
   lockedUntil  DateTime?
   updatedAt    DateTime @updatedAt
 }
+
+/// Messages sent from the in-app Help & Support contact form
+model SupportMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  message   String
+  /// Set when the sender was signed in
+  userId    String?
+  role      String?
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+}

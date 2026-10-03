@@ -11,6 +11,7 @@ import prescriptionRoutes from './routes/prescriptionRoutes.js'
 import legacyRoutes from './routes/legacyRoutes.js'
 import followUpRoutes from './routes/followUpRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
+import supportRoutes from './routes/supportRoutes.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import { rateLimit } from './middleware/rateLimitMiddleware.js'
 import { securityHeaders } from './middleware/securityHeaders.js'
@@ -34,6 +35,12 @@ const aiLimiter = rateLimit({
   windowMs: env.RATE_LIMIT_AI_WINDOW_MINUTES * 60 * 1000,
   max: env.RATE_LIMIT_AI_MAX,
   message: 'Too many AI requests. Please wait a moment and try again.',
+})
+const supportLimiter = rateLimit({
+  name: 'support',
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many support messages. Please try again later.',
 })
 
 app.use(securityHeaders)
@@ -61,6 +68,9 @@ app.use('/api/follow-ups', followUpRoutes)
 
 // AI Orchestrator routes (no auth required)
 app.use('/api/ai', aiLimiter, aiRoutes)
+
+// Help & Support contact form (public)
+app.use('/api/support', supportLimiter, supportRoutes)
 
 // Frontend legacy paths (/api/patients, /api/consultations, …)
 app.use('/api', legacyRoutes)
