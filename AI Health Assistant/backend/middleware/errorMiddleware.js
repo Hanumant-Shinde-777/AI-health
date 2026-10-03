@@ -20,13 +20,16 @@ export const errorHandler = (err, req, res, _next) => {
     return res.status(409).json({ success: false, message: 'Record already exists', code: 'DUPLICATE' })
   }
 
-  if (env.NODE_ENV === 'development') {
-    console.error(err)
-  }
-
   const status = err.status || err.statusCode || 500
+
+  // Always log server errors; in production never echo internal details to the client
+  if (status >= 500 || env.NODE_ENV === 'development') {
+    console.error(`[${req.method} ${req.originalUrl}]`, err)
+  }
+  const exposeMessage = status < 500 || env.NODE_ENV !== 'production'
+
   res.status(status).json({
     success: false,
-    message: err.message || 'Internal server error',
+    message: exposeMessage ? err.message || 'Internal server error' : 'Internal server error',
   })
 }
