@@ -782,5 +782,19 @@
     "analyzing": "Checking your symptoms",
     "questions": "Preparing follow-up questions",
     "hint": "This usually takes a few seconds."
+  },
+  "historyFilters": {
+    "searchPlaceholder": "Search condition, doctor or medicine",
+    "searchLabel": "Search history",
+    "clearSearch": "Clear search",
+    "riskLabel": "Filter by risk",
+    "all": "All",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "results": "{{count}} of {{total}} shown",
+    "noMatches": "No matching results",
+    "noMatchesHint": "Try a different search or clear the filters.",
+    "clearFilters": "Clear filters"
   }
 }

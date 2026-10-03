@@ -70,6 +70,8 @@ import ErrorAlert from '@/components/feedback/ErrorAlert'
 import ThinkingIndicator from '@/components/feedback/ThinkingIndicator'
 import ChatBubble from '@/components/ui/ChatBubble'
 import { AppearanceCard } from '@/components/ui/ThemeToggle'
+import HistoryFilters from '@/components/ui/HistoryFilters'
+import { filterConsultations, filterPrescriptions, type RiskFilter } from '@/utils/historyFilters'
 import RiskBadge from '@/components/ui/RiskBadge'
 import { useToast } from '@/components/feedback/Toast'
 import { AnswerChip } from '@/components/ui/AnswerChip'
@@ -3095,6 +3097,22 @@ export const FollowUpPage = () => {
   )
 }
 
+const NoMatches = ({ onClear }: { onClear: () => void }) => {
+  const { t } = useTranslation()
+  return (
+    <div className="card flex flex-col items-center gap-3 p-8 text-center animate-fade-in">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Search size={22} />
+      </div>
+      <p className="font-semibold text-foreground">{t('historyFilters.noMatches', 'No matching results')}</p>
+      <p className="text-sm text-muted">{t('historyFilters.noMatchesHint', 'Try a different search or clear the filters.')}</p>
+      <button type="button" className="mt-1 text-sm font-semibold text-primary" onClick={onClear}>
+        {t('historyFilters.clearFilters', 'Clear filters')}
+      </button>
+    </div>
+  )
+}
+
 export const HistoryPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -3104,6 +3122,26 @@ export const HistoryPage = () => {
   const [consultations, setConsultationsState] = useState<Consultation[]>([])
   const [prescriptions, setPrescriptionsState] = useState<Prescription[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [query, setQuery] = useState('')
+  const [riskFilter, setRiskFilter] = useState<RiskFilter>('ALL')
+
+  const filteredConsultations = useMemo(
+    () => filterConsultations(consultations, query, riskFilter),
+    [consultations, query, riskFilter],
+  )
+  const approvedPrescriptions = useMemo(
+    () => prescriptions.filter((item) => item.status === 'APPROVED'),
+    [prescriptions],
+  )
+  const filteredPrescriptions = useMemo(
+    () => filterPrescriptions(approvedPrescriptions, query),
+    [approvedPrescriptions, query],
+  )
+  const clearFilters = () => {
+    setQuery('')
+    setRiskFilter('ALL')
+  }
 
   const prescriptionByConsultation = useMemo(() => {
     const map = new Map<string, Prescription>()
@@ -3136,18 +3174,23 @@ export const HistoryPage = () => {
     setPrescriptionsState(prescriptionItems)
   }
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      try {
-        await loadHistory()
-      } finally {
-        setLoading(false)
-      }
+  const load = async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      await loadHistory()
+    } catch {
+      setLoadError(true)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     void load()
     const timer = window.setInterval(() => {
-      void loadHistory()
+      // Background refresh: keep showing the last good data if it fails
+      loadHistory().catch(() => undefined)
     }, 30000)
     return () => window.clearInterval(timer)
   }, [])
@@ -3175,6 +3218,29 @@ export const HistoryPage = () => {
           ))}
         </div>
 
+        {!loading && (tab === 'consultations' ? consultations.length > 0 : approvedPrescriptions.length > 0) ? (
+          <HistoryFilters
+            query={query}
+            onQueryChange={setQuery}
+            risk={tab === 'consultations' ? riskFilter : undefined}
+            onRiskChange={tab === 'consultations' ? setRiskFilter : undefined}
+            resultCount={tab === 'consultations' ? filteredConsultations.length : filteredPrescriptions.length}
+            totalCount={tab === 'consultations' ? consultations.length : approvedPrescriptions.length}
+          />
+        ) : null}
+
+        {loadError && !loading ? (
+          <ErrorAlert
+            action={
+              <button type="button" className="text-sm font-semibold text-primary" onClick={() => void load()}>
+                {t('common.retry') || 'Retry'}
+              </button>
+            }
+          >
+            {t('common.loadError')}
+          </ErrorAlert>
+        ) : null}
+
         {loading ? (
           <div className="space-y-3">
             <SkeletonCard />
@@ -3185,8 +3251,9 @@ export const HistoryPage = () => {
 
         {!loading && tab === 'consultations' ? (
           consultations.length ? (
+            filteredConsultations.length ? (
             <div className="space-y-3">
-              {consultations.map((item) => (
+              {filteredConsultations.map((item) => (
                 <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all hover:shadow-card-hover">
                   <div className="border-l-4 border-primary p-4">
                     <p className="text-xs font-medium text-muted">{formatDate(item.createdAt)}</p>
@@ -3242,15 +3309,19 @@ export const HistoryPage = () => {
                 </div>
               ))}
             </div>
-          ) : (
+            ) : (
+              <NoMatches onClear={clearFilters} />
+            )
+          ) : loadError ? null : (
             <EmptyState icon={<ClipboardList size={36} className="text-primary" />} text={t('history.noConsultations')} />
           )
         ) : null}
 
         {!loading && tab === 'prescriptions' ? (
-          prescriptions.filter((item) => item.status === 'APPROVED').length ? (
+          approvedPrescriptions.length ? (
+            filteredPrescriptions.length ? (
             <div className="space-y-3">
-              {prescriptions.filter((item) => item.status === 'APPROVED').map((item) => (
+              {filteredPrescriptions.map((item) => (
                 <div key={item.id} className="card p-4">
                   <p className="text-sm text-subtle">{formatDate(item.dateTime ?? getNowIso())}</p>
                   <p className="mt-1 font-medium">{item.diagnosis}</p>
@@ -3272,7 +3343,10 @@ export const HistoryPage = () => {
                 </div>
               ))}
             </div>
-          ) : (
+            ) : (
+              <NoMatches onClear={clearFilters} />
+            )
+          ) : loadError ? null : (
             <div className="flex flex-col items-center py-16 text-center">
               <FileText size={48} className="mb-3 text-primary/30" strokeWidth={1.5} />
               <p className="font-medium text-foreground">{t('history.noPrescriptions')}</p>
