@@ -16,15 +16,110 @@ AI Health Assistant/
 └── postman_collection.json
 ```
 
+Docker files live in the repo root: `docker-compose.yml`, `docker-compose.dev.yml`, `.env.example`, `Makefile`, plus a `Dockerfile` and `.dockerignore` in `backend/` and `frontend/` (and `frontend/nginx.conf`).
+
 ---
 
-## Prerequisites
+## Run with Docker
+
+You need **Docker Desktop** (or Docker Engine with Compose v2), a **Supabase** project and a **Groq API key**. Node.js is not required on the host.
+
+### 1. Configure
+
+```bash
+cp .env.example .env     # or: make env
+```
+
+Edit `.env` in the repo root and set at least `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` and `GROQ_API_KEY`. Write values **without quotes**, and escape a literal `$` in a password as `$$` (Compose interpolates `$`). The full list is in [Docker environment variables](#docker-environment-variables).
+
+### 2. Create the database tables (first run, and after schema changes)
+
+```bash
+make db-push
+# without make:
+docker compose -f docker-compose.dev.yml run --rm --no-deps backend npx prisma db push
+```
+
+### 3. Start
+
+```bash
+make build && make up
+# without make:
+docker compose build
+docker compose up -d
+docker compose ps        # backend and frontend should become "healthy"
+```
+
+Open **http://localhost**. nginx serves the React build and proxies `/api` to the backend, so the browser talks to a single origin. The API is also published directly at http://localhost:5000/api (`curl http://localhost:5000/api/health`).
+
+| Service | Container port | Host port | Notes |
+|---|---|---|---|
+| `frontend` (nginx) | 80 | `FRONTEND_PORT` (80) | SPA + `/api` reverse proxy |
+| `backend` (Express) | 5000 | `BACKEND_PORT` (5000) | Health check: `GET /api/health` |
+| `redis` (optional) | 6379 | not published | Only with `docker compose --profile redis up -d` |
+
+OTP codes: SMS is mocked. To sign in on a local Docker setup, set `DEV_LOG_OTP=true` in `.env`, run `docker compose up -d`, and read the code from `docker compose logs backend`.
+
+### Development mode (hot reload)
+
+```bash
+make dev
+# without make:
+docker compose -f docker-compose.dev.yml up --build
+```
+
+- App: **http://localhost:5173** (Vite dev server) · API: **http://localhost:5001/api** (nodemon)
+- `backend/` and `frontend/` are bind-mounted — saving a file reloads the API or hot-updates the page. File watching uses polling, so it works on Windows/macOS.
+- `NODE_ENV=development` and `DEV_LOG_OTP=true` are forced, so OTP codes appear in the logs.
+- After changing `package.json`, rebuild and reset the cached `node_modules` volumes: `docker compose -f docker-compose.dev.yml down -v && make dev`.
+- The dev stack uses its own project name (`ai-health-dev`), so it can run alongside the production stack.
+
+### Make targets
+
+| Command | Runs |
+|---|---|
+| `make build` | `docker compose build` |
+| `make up` | `docker compose up -d` |
+| `make down` | `docker compose down` |
+| `make logs` | `docker compose logs -f` |
+| `make restart` | `docker compose restart` |
+| `make ps` | `docker compose ps` |
+| `make dev` | `docker compose -f docker-compose.dev.yml up --build` |
+| `make dev-down` | Stop the dev stack |
+| `make clean` | Remove all containers, networks **and volumes** (prod + dev) |
+| `make shell-backend` / `make shell-frontend` | `sh` inside the running container |
+| `make db-push` | `prisma db push` against `DATABASE_URL` / `DIRECT_URL` |
+| `make env` | Create `.env` from `.env.example` |
+
+`make` isn't installed on Windows by default — use the plain `docker compose` commands shown, or run `make` from Git Bash/WSL after installing it (e.g. `choco install make`).
+
+### Docker environment variables
+
+All variables go in the root `.env` (template: [`.env.example`](.env.example)). The backend variables are the same as in [Backend (`backend/.env`)](#backend-backendenv); these are Docker-specific or have different defaults:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `NODE_ENV` | `production` | Forced to `production` in `docker-compose.yml`, `development` in `docker-compose.dev.yml` |
+| `FRONTEND_URL` | `http://localhost` | Must include the URL users open the app at — browsers send `Origin` even on same-origin POSTs, and production CORS rejects unlisted origins |
+| `TRUST_PROXY` | `1` | The API sits behind nginx |
+| `DEV_LOG_OTP` | `false` | Print OTP codes to `docker compose logs backend` |
+| `VITE_API_URL` | `/api` | **Build-time.** API base URL baked into the frontend bundle. Rebuild the frontend after changing it |
+| `VITE_DEMO_MODE` | `false` | **Build-time.** Fall back to demo data when the API is unreachable |
+| `REDIS_URL` | `redis://redis:6379` | Reserved for a shared rate-limit store; the backend currently rate-limits in memory |
+| `FRONTEND_PORT` / `BACKEND_PORT` | `80` / `5000` | Host ports of the production stack |
+| `DEV_FRONTEND_PORT` / `DEV_BACKEND_PORT` | `5173` / `5001` | Host ports of the dev stack |
+
+---
+
+## Run without Docker
+
+**Prerequisites**
 
 - **Node.js 20 LTS or newer** (with npm)
 - A **Supabase** project (free tier is fine) for the PostgreSQL database
 - A **Groq API key** for AI follow-up questions — free at [console.groq.com/keys](https://console.groq.com/keys)
 
-## Quick start
+## Quick start (without Docker)
 
 ### 1. Install dependencies
 
@@ -174,6 +269,17 @@ SMS sending is mocked, so OTP codes are **printed in the backend terminal** (as 
 - Leave `DEV_LOG_OTP` unset (it defaults to off in production) and wire up real SMS delivery in `backend/utils/sendOTP.js`.
 - Set `TRUST_PROXY=1` behind a reverse proxy. Rate limits are kept in memory per server instance — use a shared store such as Redis if you run more than one.
 - Build the frontend with `VITE_API_URL` pointing at the deployed API, then serve `frontend/dist/` as a single-page app (all unknown paths → `index.html`).
+
+### Deploying with Docker
+
+- On the server: clone the repo, create `.env` from `.env.example`, then `docker compose up -d --build`. Containers restart automatically (`unless-stopped`), including after a reboot once Docker starts.
+- Set `FRONTEND_URL` to the public origin (e.g. `https://health.example.com`) — otherwise every POST from the browser is rejected by CORS.
+- Terminate HTTPS in front of the stack (a host-level nginx/Caddy/Traefik, or a cloud load balancer) and forward to the `frontend` container's port. If that adds a second proxy hop, set `TRUST_PROXY=2`.
+- Once nginx proxies all API traffic, you can stop publishing the backend port: remove `ports` from the `backend` service (it stays reachable to nginx on `app-network`).
+- `VITE_*` values are compiled into the frontend image: rebuild (`docker compose build frontend`) after changing them.
+- The backend runs as the non-root `node` user; both containers have health checks (`docker compose ps` shows `healthy`). Logs go to stdout — view them with `docker compose logs`, and configure Docker's log rotation (`max-size`) on long-running hosts.
+- To update: `git pull && docker compose up -d --build`, and `make db-push` if `prisma/schema.prisma` changed.
+- Redis is only provisioned (`--profile redis`); running several backend replicas still needs the rate limiter moved to a shared store.
 
 ## API reference
 

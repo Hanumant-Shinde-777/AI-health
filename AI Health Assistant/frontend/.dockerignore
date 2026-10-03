@@ -1,0 +1,20 @@
+node_modules
+dist
+dist-ssr
+.vite
+coverage
+*.log
+*.tsbuildinfo
+
+# VITE_* values come from Docker build args, not local .env files
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+Dockerfile
+.dockerignore

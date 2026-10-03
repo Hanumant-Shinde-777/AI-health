@@ -1,0 +1,58 @@
+# AI Health Assistant — development stack with hot reload
+#
+#   docker compose -f docker-compose.dev.yml up --build
+#
+# App: http://localhost:5173   API: http://localhost:5001/api
+# Source folders are bind-mounted; edits reload automatically.
+
+name: ai-health-dev
+
+services:
+  backend:
+    build:
+      context: ./AI Health Assistant/backend
+      target: dev
+    image: ai-health-backend:dev
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      # Print OTP codes in `docker compose logs backend`
+      DEV_LOG_OTP: "true"
+    ports:
+      - "${DEV_BACKEND_PORT:-5001}:5000"
+    volumes:
+      - ./AI Health Assistant/backend:/app
+      # Keep the container's Linux node_modules (with the generated Prisma client)
+      - backend-node-modules:/app/node_modules
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./AI Health Assistant/frontend
+      target: dev
+    image: ai-health-frontend:dev
+    environment:
+      # The browser calls the API directly on the published dev port
+      VITE_API_URL: http://localhost:${DEV_BACKEND_PORT:-5001}/api
+    depends_on:
+      - backend
+    ports:
+      - "${DEV_FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./AI Health Assistant/frontend:/app
+      - frontend-node-modules:/app/node_modules
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  backend-node-modules:
+  frontend-node-modules:
