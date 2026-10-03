@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { ApiError } from './apiError.js'
 
-const PLACEHOLDER_MARKERS = ['[PROJECT-REF]', '[PASSWORD-ENCODED]', '[REGION]']
+const PLACEHOLDER_MARKERS = ['[PROJECT-REF]', '[PASSWORD-ENCODED]', '[REGION]', '[YOUR-PASSWORD]']
 
 export function assertDatabaseConfigured() {
   const url = process.env.DATABASE_URL ?? ''
