@@ -58,7 +58,7 @@ Open **http://localhost**. nginx serves the React build and proxies `/api` to th
 | `backend` (Express) | 5000 | `BACKEND_PORT` (5000) | Health check: `GET /api/health` |
 | `redis` (optional) | 6379 | not published | Only with `docker compose --profile redis up -d` |
 
-OTP codes: SMS is mocked. To sign in on a local Docker setup, set `DEV_LOG_OTP=true` in `.env`, run `docker compose up -d`, and read the code from `docker compose logs backend`.
+OTP codes: in production they are sent by SMS through Twilio — set the `TWILIO_*` variables in `.env`. To sign in on a local Docker setup without Twilio, set `DEV_LOG_OTP=true` in `.env`, run `docker compose up -d`, and read the code from `docker compose logs backend`.
 
 ### Development mode (hot reload)
 
@@ -102,7 +102,8 @@ All variables go in the root `.env` (template: [`.env.example`](.env.example)). 
 | `NODE_ENV` | `production` | Forced to `production` in `docker-compose.yml`, `development` in `docker-compose.dev.yml` |
 | `FRONTEND_URL` | `http://localhost` | Must include the URL users open the app at — browsers send `Origin` even on same-origin POSTs, and production CORS rejects unlisted origins |
 | `TRUST_PROXY` | `1` | The API sits behind nginx |
-| `DEV_LOG_OTP` | `false` | Print OTP codes to `docker compose logs backend` |
+| `DEV_LOG_OTP` | `false` | Print OTP codes to `docker compose logs backend` (local testing without Twilio) |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` (or `TWILIO_MESSAGING_SERVICE_SID`) | — | **Required in production.** SMS delivery of OTP codes |
 | `VITE_API_URL` | `/api` | **Build-time.** API base URL baked into the frontend bundle. Rebuild the frontend after changing it |
 | `VITE_DEMO_MODE` | `false` | **Build-time.** Fall back to demo data when the API is unreachable |
 | `REDIS_URL` | `redis://redis:6379` | Reserved for a shared rate-limit store; the backend currently rate-limits in memory |
@@ -146,7 +147,7 @@ DIRECT_URL="postgresql://postgres.<project-ref>:<password>@aws-1-<region>.pooler
 JWT_SECRET=<a long random string>
 GROQ_API_KEY=<your Groq key>
 
-# Prints OTP codes in the backend terminal (SMS delivery is mocked)
+# Prints OTP codes in the backend terminal (for local use without an SMS provider)
 DEV_LOG_OTP=true
 ```
 
@@ -194,7 +195,7 @@ Open **http://localhost:5173**. Check the API with `curl http://localhost:5000/a
 
 ### 6. Sign in locally
 
-SMS sending is mocked, so OTP codes are **printed in the backend terminal** (as `[OTP] SMS → <phone>: 123456`) while `DEV_LOG_OTP=true`. Register a patient or doctor in the app, then enter the code from the backend terminal.
+Without an SMS provider configured, OTP codes are **printed in the backend terminal** (as `[OTP] SMS → <phone>: 123456`) while `DEV_LOG_OTP=true`. Register a patient or doctor in the app, then enter the code from the backend terminal.
 
 ---
 
@@ -236,6 +237,8 @@ SMS sending is mocked, so OTP codes are **printed in the backend terminal** (as 
 | `JWT_EXPIRES_IN` | No | `7d` | Login token lifetime |
 | `OTP_TTL_MINUTES` | No | `10` | OTP validity |
 | `DEV_LOG_OTP` | No | `true` in development, `false` in production | Print OTP codes to the server log |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | **Yes in production** | — | Twilio credentials for sending OTP codes by SMS. Without them, production sign-in fails with 503 |
+| `TWILIO_PHONE_NUMBER` or `TWILIO_MESSAGING_SERVICE_SID` | **Yes in production** | — | SMS sender: a Twilio number or a Messaging Service |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | For uploads | — | Profile picture uploads |
 | `MAX_OTP_ATTEMPTS` / `OTP_LOCK_MINUTES` | No | `5` / `15` | Lock login after repeated wrong OTPs |
 | `MAX_PASSWORD_ATTEMPTS` / `PASSWORD_LOCK_MINUTES` | No | `5` / `15` | Lock login after repeated wrong passwords |
@@ -266,7 +269,7 @@ SMS sending is mocked, so OTP codes are **printed in the backend terminal** (as 
 ## Production notes
 
 - Set `NODE_ENV=production`, a strong unique `JWT_SECRET`, and `FRONTEND_URL` to your deployed frontend's origin (e.g. `https://app.example.com`). In production only the origins listed there can call the API from a browser — the startup log prints the effective CORS policy.
-- Leave `DEV_LOG_OTP` unset (it defaults to off in production) and wire up real SMS delivery in `backend/utils/sendOTP.js`.
+- Set the `TWILIO_*` variables so OTP codes are delivered by SMS, and leave `DEV_LOG_OTP` unset (it defaults to off in production).
 - Set `TRUST_PROXY=1` behind a reverse proxy. Rate limits are kept in memory per server instance — use a shared store such as Redis if you run more than one.
 - Build the frontend with `VITE_API_URL` pointing at the deployed API, then serve `frontend/dist/` as a single-page app (all unknown paths → `index.html`).
 
