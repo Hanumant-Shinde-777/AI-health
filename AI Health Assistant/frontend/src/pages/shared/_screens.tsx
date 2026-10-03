@@ -2760,13 +2760,18 @@ export const PatientPrescriptionPage = () => {
     if (!prescription) {
       return
     }
-    const blob = await downloadPdf(prescription.id)
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `${prescription.id}.pdf`
-    anchor.click()
-    URL.revokeObjectURL(url)
+    try {
+      const blob = await downloadPdf(prescription.id)
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `${prescription.id}.pdf`
+      anchor.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // No server PDF available: print the prescription on screen (browsers offer "Save as PDF")
+      window.print()
+    }
   }
 
   if (loading) {
@@ -2803,7 +2808,7 @@ export const PatientPrescriptionPage = () => {
           title={t('patientPrescription.title')}
           onBack={() => window.history.back()}
           right={
-            <button type="button" onClick={() => void handleDownload()} aria-label={t('pdfShare.downloadPdf')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95">
+            <button type="button" onClick={() => void handleDownload()} aria-label={t('pdfShare.downloadPdf')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/40 hover:bg-surface active:scale-95 print:hidden">
               <Download size={18} />
             </button>
           }
@@ -2946,7 +2951,7 @@ export const PdfSharePage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 print:hidden">
           <button
             type="button"
             className="btn-primary"
@@ -2960,7 +2965,8 @@ export const PdfSharePage = () => {
                 anchor.click()
                 URL.revokeObjectURL(url)
               } catch {
-                showToast(t('report.downloadFailed', 'Could not download the PDF. Please try again.'))
+                // No server PDF available: print the prescription on screen (browsers offer "Save as PDF")
+                window.print()
               }
             }}
           >

@@ -156,27 +156,17 @@ export const approvePrescription = async (id: string): Promise<Prescription> => 
   }
 }
 
+/**
+ * Server-generated prescription PDF. Throws when the server can't provide one — callers fall back
+ * to the browser's print dialog ("Save as PDF") on the prescription that is already on screen.
+ * (The old fallback saved plain text with a .pdf name, which no PDF viewer can open.)
+ */
 export const downloadPdf = async (id: string): Promise<Blob> => {
-  try {
-    const response = await client.get<Blob>(`/prescriptions/${id}/pdf`, {
-      responseType: 'blob',
-    })
-    return response.data
-  } catch {
-    await delay()
-    const prescription = await getPrescription(id)
-    const lines = [
-      `Prescription ID: ${prescription.id}`,
-      `Doctor: ${prescription.doctorName ?? ''}`,
-      `Diagnosis: ${prescription.diagnosis}`,
-      '',
-      'Medicines:',
-      ...prescription.medicines.map(
-        (item) => `- ${item.name}: ${item.dosage}, ${item.frequency}, ${item.duration}`,
-      ),
-      '',
-      `Advice: ${prescription.advice ?? ''}`,
-    ]
-    return new Blob([lines.join('\n')], { type: 'application/pdf' })
+  const response = await client.get<Blob>(`/prescriptions/${id}/pdf`, {
+    responseType: 'blob',
+  })
+  if (!response.data?.size || !String(response.data.type).includes('pdf')) {
+    throw new Error('Server did not return a PDF')
   }
+  return response.data
 }
