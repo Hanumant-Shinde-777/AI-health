@@ -4,23 +4,37 @@ Express + Prisma + PostgreSQL (Supabase). **No MongoDB.**
 
 ## Setup
 
+Full instructions, every environment variable and troubleshooting are in the [main README](../../README.md).
+
 ```bash
 cd backend
-cp .env.example .env
-# Set DATABASE_URL (Supabase) and JWT_SECRET
 npm install
-npm run db:generate
-npm run db:push
+cp .env.example .env
+# Every line in .env.example is commented out — uncomment and fill in at least:
+#   DATABASE_URL, DIRECT_URL   (Supabase connection strings)
+#   JWT_SECRET                 (long random string)
+#   GROQ_API_KEY               (needed for AI follow-up questions)
+npm run db:push    # create tables + generate the Prisma client
 npm run dev
 ```
 
-Default: `http://localhost:5000/api`
+Default: `http://localhost:5000/api` — health check: `GET /api/health`
+
+In development, OTP codes are printed in this terminal (`DEV_LOG_OTP`); SMS delivery is mocked.
 
 Frontend `.env`:
 
 ```
 VITE_API_URL=http://localhost:5000/api
 ```
+
+## AI (`/api/ai`) — no auth, rate limited
+
+| Method | Path | Body |
+|--------|------|------|
+| POST | `/analyze-symptoms` | symptoms |
+| POST | `/next-question` | symptoms, history[], additionalNotes? |
+| POST | `/final-analysis` | symptoms, answers, additionalNotes? |
 
 ## Auth (`/api/auth`)
 

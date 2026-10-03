@@ -14,6 +14,7 @@ import aiRoutes from './routes/aiRoutes.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import { rateLimit } from './middleware/rateLimitMiddleware.js'
 import { securityHeaders } from './middleware/securityHeaders.js'
+import { corsOptions, describeCorsPolicy } from './config/cors.js'
 
 const app = express()
 app.disable('x-powered-by')
@@ -33,20 +34,6 @@ const aiLimiter = rateLimit({
   max: env.RATE_LIMIT_AI_MAX,
   message: 'Too many AI requests. Please wait a moment and try again.',
 })
-
-const corsOptions = {
-  origin(origin, callback) {
-    if (!origin || origin.startsWith('http://localhost')) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  optionsSuccessStatus: 200,
-}
 
 app.use(securityHeaders)
 app.use(cors(corsOptions))
@@ -81,5 +68,5 @@ app.use(errorHandler)
 
 app.listen(env.PORT, () => {
   console.log(`API http://localhost:${env.PORT}/api`)
-  console.log('CORS: http://localhost:* (any port)')
+  console.log(`CORS: ${describeCorsPolicy()}`)
 })
