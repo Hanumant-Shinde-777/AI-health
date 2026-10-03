@@ -48,8 +48,18 @@ export const computeDoctorDashboardStats = (cases: Consultation[]): DoctorDashbo
 export const sortCasesNewestFirst = (cases: Consultation[]): Consultation[] =>
   [...cases].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
+const RISK_PRIORITY: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+
+/** Triage order: highest risk first, then newest within the same risk level. */
+export const sortCasesByUrgency = (cases: Consultation[]): Consultation[] =>
+  [...cases].sort((a, b) => {
+    const byRisk = (RISK_PRIORITY[a.riskLevel ?? 'MEDIUM'] ?? 1) - (RISK_PRIORITY[b.riskLevel ?? 'MEDIUM'] ?? 1)
+    return byRisk !== 0 ? byRisk : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+
+/** Review queue for doctors: urgent (HIGH risk) cases always on top. */
 export const getPendingCases = (cases: Consultation[]): Consultation[] =>
-  sortCasesNewestFirst(cases.filter(isPendingCase))
+  sortCasesByUrgency(cases.filter(isPendingCase))
 
 export const filterCasesByPatientsFilter = (
   cases: Consultation[],
