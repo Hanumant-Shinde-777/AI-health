@@ -795,7 +795,7 @@ export const HomePage = () => {
     { icon: Search, label: t('home.findDoctor'), to: '/find-doctor' },
     { icon: Heart, label: t('home.healthTips'), to: '/health-tips' },
     { icon: AlertTriangle, label: t('home.emergency'), to: '/emergency' },
-    { icon: Headphones, label: t('home.support') },
+    { icon: Headphones, label: t('home.support'), to: '/support' },
   ]
 
   const firstName = profile?.fullName?.split(' ')[0] ?? 'User'
@@ -860,13 +860,7 @@ export const HomePage = () => {
                 <button
                   key={item.label}
                   type="button"
-                  onClick={() =>
-                    item.to
-                      ? navigate(item.to)
-                      : item.label === t('home.emergency')
-                        ? window.alert(t('home.emergencyAlert'))
-                        : window.alert(item.label)
-                  }
+                  onClick={() => navigate(item.to)}
                   className="card flex min-h-[100px] flex-col items-start justify-between p-4 text-left transition-all duration-200 hover:shadow-card-hover active:scale-[0.98]"
                 >
                   <div className="rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 text-primary">

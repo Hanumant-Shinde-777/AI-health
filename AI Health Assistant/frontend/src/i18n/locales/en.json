@@ -947,5 +947,88 @@
       }
     },
     "disclaimer": "General wellness information, not medical advice. Ask your doctor about your own health."
+  },
+  "support": {
+    "title": "Help & support",
+    "subtitle": "How to use the app, common questions and how to reach us.",
+    "helplinesTitle": "In an emergency, call now",
+    "guideTitle": "How to use the app",
+    "guide": {
+      "describe": {
+        "title": "Describe your symptoms",
+        "body": "Tap the microphone or type what you feel, as in your own words."
+      },
+      "answer": {
+        "title": "Answer a few questions",
+        "body": "The AI asks follow-up questions one at a time. Pick the answer that fits best."
+      },
+      "review": {
+        "title": "Check your summary",
+        "body": "See your symptoms, risk level and the recommended specialist. Save it as a PDF or share it."
+      },
+      "doctor": {
+        "title": "Send it to a doctor",
+        "body": "Choose a doctor and submit. Track the status in History."
+      },
+      "prescription": {
+        "title": "Get your prescription",
+        "body": "When the doctor approves it, open it from History or Prescriptions and download the PDF."
+      }
+    },
+    "faqTitle": "Frequently asked questions",
+    "faq": {
+      "diagnosis": {
+        "q": "Is the AI result a diagnosis?",
+        "a": "No. The AI helps organise your symptoms and suggests a risk level and specialist. Only a doctor can diagnose you or prescribe medicine."
+      },
+      "emergency": {
+        "q": "What should I do in an emergency?",
+        "a": "Do not wait for the app. Call 112 (emergency) or 108 (ambulance) straight away. The Emergency page has one-tap call buttons."
+      },
+      "time": {
+        "q": "How long until a doctor reviews my case?",
+        "a": "It depends on the doctor's availability. Your case shows \"Pending review\" in History until the doctor responds, then \"Prescription ready\"."
+      },
+      "privacy": {
+        "q": "Who can see my health information?",
+        "a": "You and the doctor you send your case to. Signing out removes your health details from this device, so always sign out on a shared phone."
+      },
+      "language": {
+        "q": "How do I change the language?",
+        "a": "Open Profile and choose a language under Language. The app switches immediately."
+      },
+      "pdf": {
+        "q": "How do I save my prescription as a PDF?",
+        "a": "Open the prescription and tap Download PDF. If a direct download isn't available, your browser's print screen opens — choose \"Save as PDF\"."
+      },
+      "followUp": {
+        "q": "How do I book a follow-up?",
+        "a": "Go to History, find the consultation and tap Book Follow-up, then pick a date and doctor."
+      },
+      "otp": {
+        "q": "I didn't receive my OTP. What now?",
+        "a": "Wait a minute and check the number you entered, then tap Resend. Codes expire after 10 minutes, and 5 wrong attempts lock sign-in for 15 minutes."
+      }
+    },
+    "form": {
+      "title": "Contact support",
+      "subtitle": "Tell us about a problem or a question. We usually reply by email.",
+      "name": "Your name",
+      "email": "Email",
+      "message": "Message",
+      "messagePlaceholder": "Describe the problem or question…",
+      "send": "Send message",
+      "sending": "Sending…",
+      "sentTitle": "Message sent",
+      "sentBody": "Thank you. Our team will reply to your email.",
+      "sendAnother": "Send another message",
+      "sendFailed": "Could not send your message. Please try again.",
+      "notForEmergencies": "Not for emergencies — call 112 instead.",
+      "errors": {
+        "name": "Please enter your name.",
+        "email": "Please enter a valid email address.",
+        "message": "Please write at least 10 characters."
+      }
+    }
   }
 }

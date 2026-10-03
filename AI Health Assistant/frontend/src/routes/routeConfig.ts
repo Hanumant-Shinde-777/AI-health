@@ -38,4 +38,5 @@
   EMERGENCY: '/emergency',
   FIND_DOCTOR: '/find-doctor',
   HEALTH_TIPS: '/health-tips',
+  SUPPORT: '/support',
 } as const
