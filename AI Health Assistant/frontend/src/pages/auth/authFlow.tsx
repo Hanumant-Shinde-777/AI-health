@@ -18,6 +18,7 @@ import { getProfile, updateMedicalHistory, updateProfile } from '@/services/pati
 import LoadingSpinner from '@/components/feedback/LoadingSpinner'
 import RegistrationSuccessModal from '@/components/ui/RegistrationSuccessModal'
 import { AppearanceCard } from '@/components/ui/ThemeToggle'
+import LanguageCard from '@/components/ui/LanguageCard'
 import BackButton from '@/components/ui/BackButton'
 import FormField from '@/components/forms/FormField'
 import MedicalHistoryForm from '@/components/forms/MedicalHistoryForm'
@@ -1472,6 +1473,7 @@ export const PatientMyProfilePage = () => {
           </>
         )}
 
+        <LanguageCard className="mt-4" />
         <AppearanceCard className="mt-4" />
 
         <button

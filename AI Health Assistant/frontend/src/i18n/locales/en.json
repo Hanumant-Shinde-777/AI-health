@@ -1030,5 +1030,9 @@
         "message": "Please write at least 10 characters."
       }
     }
+  },
+  "languageCard": {
+    "title": "Language",
+    "description": "Choose the language for the app."
   }
 }
