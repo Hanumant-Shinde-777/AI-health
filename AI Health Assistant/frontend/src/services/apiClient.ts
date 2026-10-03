@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { API_URL } from '@/config/env'
-import { removeStorage, storageKeys } from '@/utils'
+import { clearPersonalHealthData, removeStorage, storageKeys } from '@/utils'
 
 const client = axios.create({
   baseURL: API_URL,
@@ -30,6 +30,7 @@ client.interceptors.response.use(
       if (!isRegistrationPath) {
         removeStorage(storageKeys.token)
         removeStorage(storageKeys.authUser)
+        clearPersonalHealthData()
         if (currentPath !== '/login') {
           window.location.assign('/login')
         }

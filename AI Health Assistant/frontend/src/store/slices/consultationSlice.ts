@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { AiQuestion, Consultation, RiskLevel } from '@/types'
 import type { SymptomQuestionData } from '@/types/symptomFlow'
 import { initialSymptomQuestionData } from '@/types/symptomFlow'
+import { logout } from '@/store/slices/authSlice'
 
 interface ConsultationState {
   currentSymptoms: string
@@ -165,6 +166,10 @@ const consultationSlice = createSlice({
       state.consultationId = action.payload.id
     },
     resetConsultation: () => initialState,
+  },
+  extraReducers: (builder) => {
+    // An in-progress symptom check belongs to the user who started it
+    builder.addCase(logout, () => initialState)
   },
 })
 

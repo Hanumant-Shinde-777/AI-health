@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { User, UserRole } from '@/types'
 import { useDoctorDashboardStore } from '@/store/slices/doctorDashboardStore'
-import { readStorage, removeStorage, storageKeys, writeStorage } from '@/utils'
+import { clearPersonalHealthData, readStorage, removeStorage, storageKeys, writeStorage } from '@/utils'
 
 interface AuthState {
   user: User | null
@@ -45,6 +45,8 @@ const authSlice = createSlice({
       removeStorage(storageKeys.token)
       removeStorage(storageKeys.authUser)
       removeStorage(storageKeys.role)
+      // Personal health data must not stay on a shared device after sign-out
+      clearPersonalHealthData()
       useDoctorDashboardStore.getState().setCases([])
     },
     setRole: (state, action: PayloadAction<UserRole>) => {

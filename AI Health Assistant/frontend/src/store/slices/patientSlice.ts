@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { MedicalHistory, Patient } from '@/types'
 import { readStorage, storageKeys, writeStorage } from '@/utils'
+import { logout } from '@/store/slices/authSlice'
 
 interface PatientState {
   profile: Patient | null
@@ -24,6 +25,10 @@ const patientSlice = createSlice({
       state.medicalHistory = action.payload
       writeStorage(storageKeys.medicalHistory, action.payload)
     },
+  },
+  extraReducers: (builder) => {
+    // Don't keep the previous user's profile in memory after sign-out
+    builder.addCase(logout, () => ({ profile: null, medicalHistory: null }))
   },
 })
 

@@ -137,6 +137,14 @@ export const removeStorage = (key: string): void => {
   window.localStorage.removeItem(key)
 }
 
+/** Remove the signed-in user's personal health data from this device (logout / expired session). */
+export const clearPersonalHealthData = (): void => {
+  removeStorage(storageKeys.profile)
+  removeStorage(storageKeys.medicalHistory)
+  removeStorage(storageKeys.patientExtendedProfile)
+  removeStorage(storageKeys.activePrescriptionId)
+}
+
 export const delay = (ms = 400): Promise<void> =>
   new Promise((resolve) => {
     window.setTimeout(resolve, ms)
