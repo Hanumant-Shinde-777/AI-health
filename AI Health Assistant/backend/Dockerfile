@@ -36,9 +36,12 @@ ENV NODE_ENV=production \
     PORT=5000
 
 COPY --chown=node:node package.json package-lock.json ./
-RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
+# Reuse the deps stage's install and drop dev dependencies, instead of a second `npm ci`
+# running in parallel with the first (two concurrent installs exhausted memory on 4 GB hosts)
+COPY --from=deps --chown=node:node /app/node_modules ./node_modules
+RUN npm prune --omit=dev --no-audit --no-fund && npm cache clean --force
 
-# Generated Prisma client (lives outside the @prisma/client package)
+# Generated Prisma client (lives outside the @prisma/client package; re-copied in case prune removed it)
 COPY --from=deps --chown=node:node /app/node_modules/.prisma ./node_modules/.prisma
 COPY --chown=node:node . .
 
