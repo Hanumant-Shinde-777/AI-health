@@ -72,6 +72,7 @@ import ChatBubble from '@/components/ui/ChatBubble'
 import BackButton from '@/components/ui/BackButton'
 import { AppearanceCard } from '@/components/ui/ThemeToggle'
 import LanguageCard from '@/components/ui/LanguageCard'
+import PatientVisitHistory from '@/components/ui/PatientVisitHistory'
 import HistoryFilters from '@/components/ui/HistoryFilters'
 import ReportActions, { PrintHeader } from '@/components/ui/ReportActions'
 import { buildShareText } from '@/utils/healthReport'
@@ -2305,6 +2306,8 @@ export const DoctorConsultationPage = () => {
               : t('common.unknown')}
           </p>
         </div>
+
+        <PatientVisitHistory patientId={consultation.patientId} currentConsultationId={consultation.id} />
 
         <div className="card p-5">
           <h2 className="font-semibold text-foreground">{t('doctorReview.aiRiskTitle')}</h2>

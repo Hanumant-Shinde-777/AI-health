@@ -1034,5 +1034,10 @@
   "languageCard": {
     "title": "Language",
     "description": "Choose the language for the app."
+  },
+  "visitHistory": {
+    "title": "Previous visits with you",
+    "firstVisit": "This is the patient's first consultation with you.",
+    "loadError": "Could not load this patient's previous visits."
   }
 }
