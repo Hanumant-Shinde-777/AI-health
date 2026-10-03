@@ -12,6 +12,8 @@ import legacyRoutes from './routes/legacyRoutes.js'
 import followUpRoutes from './routes/followUpRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
 import supportRoutes from './routes/supportRoutes.js'
+import notificationRoutes from './routes/notificationRoutes.js'
+import { authMiddleware } from './middleware/authMiddleware.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import { rateLimit } from './middleware/rateLimitMiddleware.js'
 import { securityHeaders } from './middleware/securityHeaders.js'
@@ -71,6 +73,9 @@ app.use('/api/ai', aiLimiter, aiRoutes)
 
 // Help & Support contact form (public)
 app.use('/api/support', supportLimiter, supportRoutes)
+
+// Notifications built from the user's own consultations and prescriptions
+app.use('/api/notifications', authMiddleware, notificationRoutes)
 
 // Frontend legacy paths (/api/patients, /api/consultations, …)
 app.use('/api', legacyRoutes)

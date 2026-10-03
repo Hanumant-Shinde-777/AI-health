@@ -11,8 +11,8 @@ import { ApiError } from '../utils/apiError.js'
 const router = Router()
 
 // --- Response mappers ---
-const consultStatusMap = { pending: 'PENDING', reviewed: 'REVIEWED', completed: 'CLOSED' }
-const consultCaseStatusMap = { pending: 'PENDING_REVIEW', reviewed: 'PRESCRIPTION_READY', completed: 'CLOSED' }
+const consultStatusMap = { pending: 'PENDING', need_more_info: 'PENDING', reviewed: 'REVIEWED', completed: 'CLOSED' }
+const consultCaseStatusMap = { pending: 'PENDING_REVIEW', need_more_info: 'NEED_MORE_INFO', reviewed: 'PRESCRIPTION_READY', completed: 'CLOSED' }
 
 const mapConsultation = (row) => ({
   ...row,
@@ -183,19 +183,24 @@ router.patch('/consultations/:id/status', roleMiddleware('doctor'), asyncHandler
   const status = req.body.status ?? req.body.caseStatus
   const statusMap = {
     UNDER_REVIEW: 'pending', PENDING_REVIEW: 'pending',
-    PRESCRIPTION_READY: 'reviewed', CLOSED: 'completed',
-    reviewed: 'reviewed', completed: 'completed', pending: 'pending',
+    PRESCRIPTION_READY: 'reviewed', CLOSED: 'completed', NEED_MORE_INFO: 'need_more_info',
+    reviewed: 'reviewed', completed: 'completed', pending: 'pending', need_more_info: 'need_more_info',
   }
   const resolved = statusMap[status] ?? String(status ?? '').toLowerCase()
-  const allowed = ['reviewed', 'completed', 'pending']
+  const allowed = ['reviewed', 'completed', 'pending', 'need_more_info']
   if (!allowed.includes(resolved)) throw new ApiError(400, 'Invalid status', 'VALIDATION')
+  // The doctor's question to the patient travels with the status change
+  const doctorMessage =
+    resolved === 'need_more_info' && typeof req.body.doctorMessage === 'string'
+      ? req.body.doctorMessage.trim().slice(0, 1000) || null
+      : undefined
 
   const existing = await prisma.consultation.findUnique({ where: { id: req.params.id } })
   if (!existing || existing.doctorId !== req.user.id) throw new ApiError(404, 'Consultation not found', 'NOT_FOUND')
 
   const row = await prisma.consultation.update({
     where: { id: req.params.id },
-    data: { status: resolved },
+    data: { status: resolved, ...(doctorMessage !== undefined ? { doctorMessage } : {}) },
     include: { patient: true, doctor: true },
   })
   res.json(mapConsultation(row))

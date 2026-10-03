@@ -71,6 +71,8 @@ model Consultation {
   additionalNotes        String?
   detectedSpecialization String?
   possibleDisease        String?
+  /// Doctor's message when asking the patient for more information (status need_more_info)
+  doctorMessage          String?
   confidence             String?
   riskLevel              String?
   disclaimer             String?

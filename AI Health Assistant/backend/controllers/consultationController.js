@@ -59,7 +59,7 @@ export const getById = async (req, res) => {
 
 export const updateStatus = async (req, res) => {
   const { status } = req.body
-  const allowed = ['reviewed', 'completed', 'pending']
+  const allowed = ['reviewed', 'completed', 'pending', 'need_more_info']
   if (!allowed.includes(String(status))) {
     throw new ApiError(400, 'Invalid status', 'VALIDATION')
   }
