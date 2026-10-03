@@ -75,7 +75,7 @@ import LanguageCard from '@/components/ui/LanguageCard'
 import PatientVisitHistory from '@/components/ui/PatientVisitHistory'
 import HistoryFilters from '@/components/ui/HistoryFilters'
 import ReportActions, { PrintHeader } from '@/components/ui/ReportActions'
-import { buildShareText } from '@/utils/healthReport'
+import { buildShareText, shareText } from '@/utils/healthReport'
 import { filterConsultations, filterPrescriptions, type RiskFilter } from '@/utils/historyFilters'
 import RiskBadge from '@/components/ui/RiskBadge'
 import { useToast } from '@/components/feedback/Toast'
@@ -2854,17 +2854,31 @@ export const PatientPrescriptionPage = () => {
           <p className="mt-2 text-muted">{prescription.advice}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 print:hidden">
           <button type="button" className="btn-primary" onClick={() => void handleDownload()}>
             {t('patientPrescription.downloadPdf')}
           </button>
-          <button type="button" className="btn-secondary" onClick={() => showToast(t('patientPrescription.shareHint'))}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={async () => {
+              const text = [
+                `${t('patientPrescription.diagnosis')}: ${prescription.diagnosis}`,
+                ...prescription.medicines.map((m) => `• ${m.name} — ${m.dosage}, ${m.frequency}, ${m.duration}`),
+                prescription.advice ? `${t('patientPrescription.advice')}: ${prescription.advice}` : '',
+              ].filter(Boolean).join('\n')
+              const outcome = await shareText(t('patientPrescription.title'), text)
+              if (outcome === 'copied') showToast(t('report.copied'))
+              if (outcome === 'failed') showToast(t('report.shareFailed'))
+            }}
+          >
             {t('common.share')}
           </button>
           <button
             type="button"
             className="btn-secondary"
-            onClick={() => window.alert(t('prescriptionApproved.findPharmacy'))}
+            // Opens the device's maps app / Google Maps with pharmacies around the user
+            onClick={() => window.open('https://www.google.com/maps/search/?api=1&query=pharmacy%20near%20me', '_blank', 'noopener')}
           >
             {t('patientPrescription.findPharmacy')}
           </button>
