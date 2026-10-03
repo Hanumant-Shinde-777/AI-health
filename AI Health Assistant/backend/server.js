@@ -15,6 +15,7 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import { rateLimit } from './middleware/rateLimitMiddleware.js'
 import { securityHeaders } from './middleware/securityHeaders.js'
 import { corsOptions, describeCorsPolicy } from './config/cors.js'
+import { stripSecretsMiddleware } from './middleware/stripSecrets.js'
 
 const app = express()
 app.disable('x-powered-by')
@@ -36,6 +37,7 @@ const aiLimiter = rateLimit({
 })
 
 app.use(securityHeaders)
+app.use(stripSecretsMiddleware)
 app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
 app.use(express.json({ limit: '2mb' }))
