@@ -286,7 +286,7 @@ const DoctorDashboardPage = () => {
                 {
                   icon: AlertTriangle,
                   label: t('doctorDashboard.actionEmergency'),
-                  onClick: () => window.alert(t('home.emergencyAlert')),
+                  onClick: () => navigate('/emergency'),
                 },
                 { icon: Calendar, label: t('doctorDashboard.actionSchedule'), path: '/doctor-calendar' },
               ] as const
