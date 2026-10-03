@@ -858,5 +858,94 @@
     "experience": "{{years}} yrs experience",
     "fee": "Fee ₹{{fee}}",
     "howToConsult": "To consult a doctor, describe your symptoms first — you choose your doctor on the summary screen."
+  },
+  "healthTips": {
+    "title": "Health tips",
+    "subtitle": "Simple daily habits for a healthier life.",
+    "filterLabel": "Filter tips by category",
+    "categories": {
+      "all": "All",
+      "nutrition": "Nutrition",
+      "exercise": "Exercise",
+      "mental": "Mental health",
+      "sleep": "Sleep",
+      "hydration": "Hydration",
+      "preventive": "Preventive care"
+    },
+    "tips": {
+      "plate": {
+        "title": "Fill half your plate with vegetables",
+        "body": "Add dal, beans or eggs for protein and choose whole grains like brown rice, millets or whole-wheat roti."
+      },
+      "fruit": {
+        "title": "Eat fruit instead of sweets",
+        "body": "Two servings of seasonal fruit a day give fibre and vitamins with far less sugar than desserts or packaged snacks."
+      },
+      "salt": {
+        "title": "Go easy on salt and fried food",
+        "body": "Too much salt raises blood pressure. Limit pickles, papad, namkeen and deep-fried snacks to occasional treats."
+      },
+      "walk": {
+        "title": "Walk 30 minutes a day",
+        "body": "A brisk walk five days a week helps your heart, blood sugar and mood. Split it into three 10-minute walks if that is easier."
+      },
+      "strength": {
+        "title": "Build strength twice a week",
+        "body": "Squats, push-ups against a wall or carrying bags of groceries keep muscles and bones strong as you age."
+      },
+      "sitting": {
+        "title": "Break up long sitting",
+        "body": "Stand up and move for a couple of minutes every hour, especially if you work at a desk or watch long hours of TV."
+      },
+      "talk": {
+        "title": "Talk to someone you trust",
+        "body": "Sharing worries with family or friends lightens the load. If sadness lasts more than two weeks, speak to a doctor."
+      },
+      "breathe": {
+        "title": "Try slow breathing when stressed",
+        "body": "Breathe in for 4 seconds, hold for 4, breathe out for 6. A few minutes calms the body and mind."
+      },
+      "screens": {
+        "title": "Take breaks from screens",
+        "body": "Put your phone away during meals and the hour before bed. Time outdoors and with people is good for your mind."
+      },
+      "schedule": {
+        "title": "Keep a regular sleep time",
+        "body": "Adults need 7–9 hours. Going to bed and waking up at the same time every day, even on weekends, improves sleep."
+      },
+      "caffeine": {
+        "title": "Avoid tea and coffee late in the day",
+        "body": "Caffeine can keep you awake for hours. Try to have your last cup before 3 pm."
+      },
+      "darkRoom": {
+        "title": "Make your room dark and quiet",
+        "body": "A cool, dark room helps you fall asleep faster. Switch off bright lights and screens 30 minutes before bed."
+      },
+      "water": {
+        "title": "Drink water through the day",
+        "body": "Most adults need about 8 glasses a day, more in hot weather or when active. Pale yellow urine is a good sign."
+      },
+      "heat": {
+        "title": "Protect yourself in hot weather",
+        "body": "Carry water, avoid the midday sun and wear light cotton clothes. Dizziness or confusion in heat needs urgent care."
+      },
+      "ors": {
+        "title": "Use ORS for diarrhoea or vomiting",
+        "body": "Oral rehydration solution replaces lost salts and water. See a doctor if symptoms last more than a day or there is blood."
+      },
+      "checkups": {
+        "title": "Get regular health check-ups",
+        "body": "Check blood pressure, blood sugar and cholesterol every year after 30, or as your doctor advises."
+      },
+      "vaccines": {
+        "title": "Keep vaccinations up to date",
+        "body": "Children need their full schedule, and adults may need tetanus, flu and other boosters. Ask your doctor what is due."
+      },
+      "handwash": {
+        "title": "Wash your hands often",
+        "body": "Wash with soap for 20 seconds before eating, after using the toilet and after coming home to prevent infections."
+      }
+    },
+    "disclaimer": "General wellness information, not medical advice. Ask your doctor about your own health."
   }
 }

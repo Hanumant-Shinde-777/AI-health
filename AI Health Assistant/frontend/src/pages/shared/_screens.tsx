@@ -793,7 +793,7 @@ export const HomePage = () => {
     { icon: Clock3, label: t('home.history'), to: '/history' },
     { icon: FileText, label: t('home.prescriptions'), to: '/history' },
     { icon: Search, label: t('home.findDoctor'), to: '/find-doctor' },
-    { icon: Heart, label: t('home.healthTips') },
+    { icon: Heart, label: t('home.healthTips'), to: '/health-tips' },
     { icon: AlertTriangle, label: t('home.emergency'), to: '/emergency' },
     { icon: Headphones, label: t('home.support') },
   ]

@@ -33,6 +33,7 @@ const SymptomsPage = lazy(() => import('@/pages/patient/SymptomsPage'))
 const WelcomePage = lazy(() => import('@/pages/auth/WelcomePage'))
 const EmergencyPage = lazy(() => import('@/pages/patient/EmergencyPage'))
 const FindDoctorPage = lazy(() => import('@/pages/patient/FindDoctorPage'))
+const HealthTipsPage = lazy(() => import('@/pages/patient/HealthTipsPage'))
 const AuthPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.AuthPage })))
 const DoctorRegistrationPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.DoctorRegistrationPage })))
 const NotificationsPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.NotificationsPage })))
@@ -253,6 +254,7 @@ const routes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
+  { path: '/health-tips', element: <HealthTipsPage /> },
   {
     path: '/find-doctor',
     element: (
