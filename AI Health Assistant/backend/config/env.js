@@ -37,6 +37,12 @@ export const env = {
   RATE_LIMIT_AI_WINDOW_MINUTES: toPositiveInt(process.env.RATE_LIMIT_AI_WINDOW_MINUTES, 1),
   /** Set when running behind a reverse proxy so req.ip is the client address (e.g. 1) */
   TRUST_PROXY: process.env.TRUST_PROXY ?? '',
+
+  // SMS delivery for OTP codes (Twilio). Sender: TWILIO_PHONE_NUMBER or TWILIO_MESSAGING_SERVICE_SID
+  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID ?? '',
+  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN ?? '',
+  TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER ?? '',
+  TWILIO_MESSAGING_SERVICE_SID: process.env.TWILIO_MESSAGING_SERVICE_SID ?? '',
 }
 
 if (isProduction && env.JWT_SECRET === DEFAULT_JWT_SECRET) {
@@ -44,4 +50,7 @@ if (isProduction && env.JWT_SECRET === DEFAULT_JWT_SECRET) {
 }
 if (isProduction && env.DEV_LOG_OTP) {
   console.warn('[env] WARNING: DEV_LOG_OTP is enabled in production — OTP codes will be written to logs.')
+}
+if (isProduction && !(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && (env.TWILIO_PHONE_NUMBER || env.TWILIO_MESSAGING_SERVICE_SID))) {
+  console.warn('[env] WARNING: no SMS provider configured (TWILIO_*). Users will not receive OTP codes and cannot sign in.')
 }
