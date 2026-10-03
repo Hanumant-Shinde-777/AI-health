@@ -1,73 +1,47 @@
-# React + TypeScript + Vite
+# AI Health Assistant — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 18 + TypeScript + Vite + Tailwind CSS. Mobile-first UI for patients and doctors, in English, Hindi and Marathi, with light, dark and system themes.
 
-Currently, two official plugins are available:
+Full setup for the whole project (database, backend, environment variables) is in the [main README](../../README.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev        # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The backend must be running on `http://localhost:5000` (see `../backend`). If the API is elsewhere, set it in `.env`:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_API_URL=http://localhost:5000/api
 ```
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server with hot reload |
+| `npm run build` | Type-check (`tsc --noEmit`) and build to `dist/` |
+| `npm run preview` | Serve the production build locally |
+
+## Project structure
+
+```
+src/
+├── pages/            Route screens (most live in pages/shared/_screens.tsx)
+├── routes/           Router (lazy-loaded pages) and route guards
+├── components/       feedback/ (alerts, skeletons, toasts), forms/, layout/, ui/
+├── services/         API calls (axios client in apiClient.ts)
+├── store/            Redux Toolkit slices + Zustand stores
+├── context/          Theme provider
+├── i18n/             i18next setup and locales/ (en, hi, mr)
+├── assets/styles/    Tailwind entry and theme tokens (index.css)
+└── utils/            Helpers
+```
+
+## Notes
+
+- **Theme colors** are CSS variables in `src/assets/styles/index.css` (`:root[data-theme='dark' | 'light']`), mapped to Tailwind color names in `tailwind.config.js`. Use the theme names (`bg-card`, `text-muted`, `border-border`, …) rather than raw hex values so both themes work.
+- **Translations:** add new strings to all three files in `src/i18n/locales/`. Missing Hindi/Marathi keys fall back to English.
+- **Offline fallback:** several services fall back to mock data in `localStorage` when the API is unreachable, so some screens still render without the backend.
