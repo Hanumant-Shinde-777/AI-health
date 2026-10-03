@@ -74,7 +74,7 @@ export const submitConsultation = async (
       doctorName: '',
       recommendedSpecialization: data.recommendedSpecialization,
       statusTimeline: [{ status: 'PENDING_REVIEW', at: submittedAt }],
-      possibleCause: aiSummaryResolved.possibleCause,
+      possibleCause: data.aiSummary?.possibleCause || aiSummaryResolved.possibleCause,
       symptomList: data.symptoms
         .split(/[.,\n]/)
         .map((item) => item.trim())

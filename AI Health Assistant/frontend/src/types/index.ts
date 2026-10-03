@@ -117,6 +117,8 @@ export interface SubmitConsultationPayload {
   doctorId?: string
   recommendedSpecialization?: string
   patientId?: string
+  /** AI result shown to the patient; the backend stores possibleCause as the case's possible condition */
+  aiSummary?: { possibleCause?: string }
 }
 
 export interface ConsultationSubmissionResponse {

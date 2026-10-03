@@ -2045,6 +2045,7 @@ export const SummaryPage = () => {
                 doctorId: selectedDoctor.id,
                 recommendedSpecialization: aiSpecialization || recommendedSpecialization,
                 patientId: profile?.id,
+                aiSummary: disease ? { possibleCause: disease } : undefined,
               })
               dispatch(resetConsultation())
               navigate('/submission-success', {
