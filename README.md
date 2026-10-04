@@ -50,12 +50,12 @@ docker compose up -d
 docker compose ps        # backend and frontend should become "healthy"
 ```
 
-Open **http://localhost**. nginx serves the React build and proxies `/api` to the backend, so the browser talks to a single origin. The API is also published directly at http://localhost:5000/api (`curl http://localhost:5000/api/health`).
+Open **http://localhost**. nginx serves the React build and proxies `/api` to the backend, so the browser talks to a single origin. The API is also published at http://localhost:5000/api for checks from this machine (`curl http://localhost:5000/api/health`); it is bound to `127.0.0.1` only, so other devices must go through nginx — otherwise callers could fake `X-Forwarded-For` and bypass rate limits.
 
 | Service | Container port | Host port | Notes |
 |---|---|---|---|
 | `frontend` (nginx) | 80 | `FRONTEND_PORT` (80) | SPA + `/api` reverse proxy |
-| `backend` (Express) | 5000 | `BACKEND_PORT` (5000) | Health check: `GET /api/health` |
+| `backend` (Express) | 5000 | `BACKEND_PORT` (5000), `127.0.0.1` only | Health check: `GET /api/health` |
 | `redis` (optional) | 6379 | not published | Only with `docker compose --profile redis up -d` |
 
 OTP codes: in production they are sent by SMS through Twilio — set the `TWILIO_*` variables in `.env`. To sign in on a local Docker setup without Twilio, set `DEV_LOG_OTP=true` in `.env`, run `docker compose up -d`, and read the code from `docker compose logs backend`.

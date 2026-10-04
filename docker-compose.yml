@@ -22,8 +22,10 @@ services:
       TRUST_PROXY: ${TRUST_PROXY:-1}
       # Browsers send an Origin header even for same-origin POSTs, so the app's own URL must be allowed
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+    # Loopback only: the API trusts X-Forwarded-For from nginx, so a port reachable from the
+    # network would let callers fake their IP and dodge rate limits. Public traffic goes via nginx /api.
     ports:
-      - "${BACKEND_PORT:-5000}:5000"
+      - "127.0.0.1:${BACKEND_PORT:-5000}:5000"
     volumes:
       - backend-logs:/app/logs
     healthcheck:
