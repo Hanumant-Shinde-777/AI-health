@@ -71,8 +71,9 @@ app.use('/api/follow-ups', followUpRoutes)
 // AI Orchestrator routes (no auth required)
 app.use('/api/ai', aiLimiter, aiRoutes)
 
-// Help & Support contact form (public)
-app.use('/api/support', supportLimiter, supportRoutes)
+// Help & Support: the contact form is public and rate limited; the staff inbox needs auth
+app.post('/api/support', supportLimiter)
+app.use('/api/support', supportRoutes)
 
 // Notifications built from the user's own consultations and prescriptions
 app.use('/api/notifications', authMiddleware, notificationRoutes)

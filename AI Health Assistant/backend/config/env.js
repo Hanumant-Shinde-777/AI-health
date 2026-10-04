@@ -38,6 +38,12 @@ export const env = {
   /** Set when running behind a reverse proxy so req.ip is the client address (e.g. 1) */
   TRUST_PROXY: process.env.TRUST_PROXY ?? '',
 
+  /** Comma-separated account emails (patient or doctor) that can read the support inbox */
+  SUPPORT_STAFF_EMAILS: (process.env.SUPPORT_STAFF_EMAILS ?? '')
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean),
+
   // SMS delivery for OTP codes (Twilio). Sender: TWILIO_PHONE_NUMBER or TWILIO_MESSAGING_SERVICE_SID
   TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID ?? '',
   TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN ?? '',

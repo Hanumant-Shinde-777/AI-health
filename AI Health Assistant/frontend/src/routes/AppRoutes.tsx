@@ -35,6 +35,7 @@ const EmergencyPage = lazy(() => import('@/pages/patient/EmergencyPage'))
 const FindDoctorPage = lazy(() => import('@/pages/patient/FindDoctorPage'))
 const HealthTipsPage = lazy(() => import('@/pages/patient/HealthTipsPage'))
 const SupportPage = lazy(() => import('@/pages/patient/SupportPage'))
+const SupportInboxPage = lazy(() => import('@/pages/staff/SupportInboxPage'))
 const AuthPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.AuthPage })))
 const DoctorRegistrationPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.DoctorRegistrationPage })))
 const NotificationsPage = lazy(() => import('@/pages/auth/authFlow').then((m) => ({ default: m.NotificationsPage })))
@@ -257,6 +258,15 @@ const routes: RouteObject[] = [
   },
   { path: '/health-tips', element: <HealthTipsPage /> },
   { path: '/support', element: <SupportPage /> },
+  {
+    // Staff = accounts listed in the backend's SUPPORT_STAFF_EMAILS; the page shows a notice to everyone else
+    path: '/staff/support',
+    element: (
+      <ProtectedRoute>
+        <SupportInboxPage />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: '/find-doctor',
     element: (

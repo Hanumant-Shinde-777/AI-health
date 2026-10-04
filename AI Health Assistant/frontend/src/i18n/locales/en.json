@@ -1053,5 +1053,40 @@
   "inputHints": {
     "phoneDigits": "10-digit number",
     "defaultName": "User"
+  },
+  "supportInbox": {
+    "title": "Support inbox",
+    "subtitle": "Messages sent from the Help & support form.",
+    "linkHint": "Read and close Help & support messages",
+    "filterLabel": "Filter messages",
+    "filters": {
+      "open": "Open",
+      "closed": "Closed",
+      "all": "All"
+    },
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "sender": {
+      "patient": "Patient",
+      "doctor": "Doctor",
+      "guest": "Not signed in"
+    },
+    "empty": {
+      "open": "No open messages. You're all caught up.",
+      "closed": "No closed messages yet.",
+      "all": "No support messages yet."
+    },
+    "reply": "Reply",
+    "replySubject": "Re: your AI Health Assistant support request",
+    "markClosed": "Mark closed",
+    "reopen": "Reopen",
+    "loading": "Loading messages",
+    "loadFailed": "Could not load support messages.",
+    "updateFailed": "Could not update the message. Please try again.",
+    "retry": "Retry",
+    "forbiddenTitle": "Staff only",
+    "forbiddenBody": "This inbox is only available to support staff accounts."
   }
 }

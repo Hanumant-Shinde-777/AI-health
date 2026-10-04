@@ -245,6 +245,7 @@ Without an SMS provider configured, OTP codes are **printed in the backend termi
 | `RATE_LIMIT_AUTH_MAX` / `RATE_LIMIT_AUTH_WINDOW_MINUTES` | No | `30` / `15` | Per-IP limit on `/api/auth` |
 | `RATE_LIMIT_AI_MAX` / `RATE_LIMIT_AI_WINDOW_MINUTES` | No | `40` / `1` | Per-IP limit on `/api/ai` |
 | `TRUST_PROXY` | Behind a proxy | — | Set to `1` behind Render, Nginx, etc. so rate limits see the real client IP |
+| `SUPPORT_STAFF_EMAILS` | No | — | Comma-separated emails of patient/doctor accounts that can read Help & support messages. Staff get a **Support inbox** card on their profile page (`/staff/support`) |
 
 ### Frontend (`frontend/.env`)
 

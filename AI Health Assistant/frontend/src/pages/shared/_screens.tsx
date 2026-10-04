@@ -72,6 +72,7 @@ import ChatBubble from '@/components/ui/ChatBubble'
 import BackButton from '@/components/ui/BackButton'
 import { AppearanceCard } from '@/components/ui/ThemeToggle'
 import LanguageCard from '@/components/ui/LanguageCard'
+import SupportInboxLink from '@/components/ui/SupportInboxLink'
 import PatientVisitHistory from '@/components/ui/PatientVisitHistory'
 import HistoryFilters from '@/components/ui/HistoryFilters'
 import ReportActions, { PrintHeader } from '@/components/ui/ReportActions'
@@ -3967,6 +3968,7 @@ export const DoctorProfilePage = () => {
           </button>
         </div>
 
+        <SupportInboxLink />
         <LanguageCard />
         <AppearanceCard />
 
