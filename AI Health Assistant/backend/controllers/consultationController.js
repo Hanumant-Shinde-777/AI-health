@@ -1,5 +1,6 @@
 import prisma from '../config/prismaClient.js'
 import { ApiError } from '../utils/apiError.js'
+import { hiddenFromUser } from './prescriptionController.js'
 
 const canAccess = (consultation, user) => {
   if (user.role === 'PATIENT' && consultation.patientId === user.id) return true
@@ -54,6 +55,9 @@ export const getById = async (req, res) => {
   })
   if (!consultation) throw new ApiError(404, 'Consultation not found', 'NOT_FOUND')
   if (!canAccess(consultation, req.user)) throw new ApiError(403, 'Forbidden', 'FORBIDDEN')
+  if (consultation.prescription && hiddenFromUser(consultation.prescription, req.user)) {
+    consultation.prescription = null
+  }
   res.json({ success: true, data: consultation })
 }
 

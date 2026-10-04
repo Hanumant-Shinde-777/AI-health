@@ -60,7 +60,7 @@ export const getConsultations = async (req, res) => {
 
 export const getPrescriptions = async (req, res) => {
   const rows = await prisma.prescription.findMany({
-    where: { patientId: req.user.id },
+    where: { patientId: req.user.id, status: 'approved' },
     include: { doctor: { select: { fullName: true } } },
     orderBy: { createdAt: 'desc' },
   })

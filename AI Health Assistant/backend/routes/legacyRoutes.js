@@ -4,7 +4,7 @@ import { roleMiddleware } from '../middleware/roleMiddleware.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import * as patient from '../controllers/patientController.js'
 import * as doctor from '../controllers/doctorController.js'
-import { downloadPdf as downloadPrescriptionPdf } from '../controllers/prescriptionController.js'
+import { downloadPdf as downloadPrescriptionPdf, hiddenFromUser } from '../controllers/prescriptionController.js'
 import prisma from '../config/prismaClient.js'
 import { ApiError } from '../utils/apiError.js'
 
@@ -176,6 +176,7 @@ router.get('/consultations/:id', asyncHandler(async (req, res) => {
     (req.user.role === 'PATIENT' && row.patientId === req.user.id) ||
     (req.user.role === 'DOCTOR' && row.doctorId === req.user.id)
   if (!allowed) throw new ApiError(403, 'Forbidden', 'FORBIDDEN')
+  if (row.prescription && hiddenFromUser(row.prescription, req.user)) row.prescription = null
   res.json(mapConsultation(row))
 }))
 
@@ -207,7 +208,9 @@ router.patch('/consultations/:id/status', roleMiddleware('doctor'), asyncHandler
 }))
 
 router.get('/prescriptions', asyncHandler(async (req, res) => {
-  const where = req.user.role === 'PATIENT' ? { patientId: req.user.id } : { doctorId: req.user.id }
+  const where = req.user.role === 'PATIENT'
+    ? { patientId: req.user.id, status: 'approved' }
+    : { doctorId: req.user.id }
   const rows = await prisma.prescription.findMany({
     where,
     include: { doctor: true, patient: true },
@@ -228,6 +231,7 @@ router.get('/prescriptions/:id', asyncHandler(async (req, res) => {
     (req.user.role === 'PATIENT' && row.patientId === req.user.id) ||
     (req.user.role === 'DOCTOR' && row.doctorId === req.user.id)
   if (!allowed) throw new ApiError(403, 'Forbidden', 'FORBIDDEN')
+  if (hiddenFromUser(row, req.user)) throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
   res.json(mapPrescription(row))
 }))
 
@@ -262,6 +266,14 @@ router.post('/prescriptions', roleMiddleware('doctor'), asyncHandler(async (req,
 }))
 
 router.patch('/prescriptions/:id', roleMiddleware('doctor'), asyncHandler(async (req, res) => {
+  const existing = await prisma.prescription.findUnique({ where: { id: req.params.id } })
+  if (!existing || existing.doctorId !== req.user.id) {
+    throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
+  }
+  // Once approved the patient may already hold the PDF, so the record must not change underneath it
+  if (existing.status === 'approved') {
+    throw new ApiError(409, 'Approved prescriptions cannot be edited', 'PRESCRIPTION_LOCKED')
+  }
   const row = await prisma.prescription.update({
     where: { id: req.params.id },
     data: {

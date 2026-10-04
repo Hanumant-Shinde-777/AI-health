@@ -8,6 +8,10 @@ const canAccess = (prescription, user) => {
   return false
 }
 
+/** Drafts are the doctor's work in progress — patients only ever see approved prescriptions. */
+export const hiddenFromUser = (prescription, user) =>
+  user.role === 'PATIENT' && prescription.status !== 'approved'
+
 export const create = async (req, res) => {
   const { consultationId, patientId, diagnosis, medicines, advice, followUpDate } = req.body
   if (!consultationId || !diagnosis) {
@@ -59,6 +63,7 @@ export const getById = async (req, res) => {
   })
   if (!prescription) throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
   if (!canAccess(prescription, req.user)) throw new ApiError(403, 'Forbidden', 'FORBIDDEN')
+  if (hiddenFromUser(prescription, req.user)) throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
   res.json({ success: true, data: prescription })
 }
 
@@ -67,7 +72,7 @@ export const listByPatient = async (req, res) => {
     throw new ApiError(403, 'Forbidden', 'FORBIDDEN')
   }
   const rows = await prisma.prescription.findMany({
-    where: { patientId: req.params.patientId },
+    where: { patientId: req.params.patientId, status: 'approved' },
     include: { doctor: { select: { fullName: true, specialization: true } } },
     orderBy: { createdAt: 'desc' },
   })
@@ -108,8 +113,7 @@ export const downloadPdf = async (req, res) => {
   })
   if (!prescription) throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
   if (!canAccess(prescription, req.user)) throw new ApiError(403, 'Forbidden', 'FORBIDDEN')
-  // A draft is the doctor's work in progress, not something a patient should receive
-  if (req.user.role === 'PATIENT' && prescription.status !== 'approved') {
+  if (hiddenFromUser(prescription, req.user)) {
     throw new ApiError(404, 'Prescription not found', 'NOT_FOUND')
   }
 
