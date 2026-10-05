@@ -7,6 +7,7 @@
 import { detectEmergency } from './emergencyService.js'
 import { findSymptomMatch } from './datasetService.js'
 import { analyzeWithGroq, finalAnalysisWithGroq, nextQuestionWithGroq } from './groqService.js'
+import { ApiError } from '../utils/apiError.js'
 
 /**
  * Normalizes riskLevel strings to a consistent format.
@@ -125,7 +126,8 @@ export const nextFollowUpQuestion = async (symptoms, history = [], additionalNot
   }
 
   if (!process.env.GROQ_API_KEY) {
-    throw new Error('Dynamic follow-up questioning requires GROQ_API_KEY configuration.')
+    // 503, not 500: the server works but this feature isn't configured on this deployment
+    throw new ApiError(503, 'AI follow-up questions are unavailable: GROQ_API_KEY is not configured.', 'AI_UNAVAILABLE')
   }
   return await nextQuestionWithGroq(symptoms, history, additionalNotes)
 }

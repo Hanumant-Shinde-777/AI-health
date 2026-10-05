@@ -51,7 +51,8 @@ app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
 app.use(express.json({ limit: '2mb' }))
 
-app.get('/api/health', (_req, res) => {
+// /health is an alias for uptime checks that probe the conventional path
+app.get(['/api/health', '/health'], (_req, res) => {
   res.json({ success: true, service: 'ai-health-assistant-api' })
 })
 

@@ -55,10 +55,47 @@ Open **http://localhost**. nginx serves the React build and proxies `/api` to th
 | Service | Container port | Host port | Notes |
 |---|---|---|---|
 | `frontend` (nginx) | 80 | `FRONTEND_PORT` (80) | SPA + `/api` reverse proxy |
-| `backend` (Express) | 5000 | `BACKEND_PORT` (5000), `127.0.0.1` only | Health check: `GET /api/health` |
+| `backend` (Express) | 5000 | `BACKEND_PORT` (5000), `127.0.0.1` only | Health check: `GET /api/health` (alias `GET /health`) |
 | `redis` (optional) | 6379 | not published | Only with `docker compose --profile redis up -d` |
 
 OTP codes: in production they are sent by SMS through Twilio — set the `TWILIO_*` variables in `.env`. To sign in on a local Docker setup without Twilio, set `DEV_LOG_OTP=true` in `.env`, run `docker compose up -d`, and read the code from `docker compose logs backend`.
+
+### Verified setup (2026-10-05)
+
+The production stack was started and checked end to end with Docker 28.0.4 / Compose v2.34 on Windows 10 (WSL2):
+
+```bash
+cp .env.example .env                       # fill in DATABASE_URL, DIRECT_URL, JWT_SECRET, GROQ_API_KEY
+docker compose --profile redis up -d --build
+docker compose --profile redis ps          # backend, frontend, redis → "healthy"
+
+curl http://localhost:5000/health          # {"success":true,"service":"ai-health-assistant-api"}
+curl http://localhost/api/health           # same response, through nginx
+curl -I http://localhost                   # 200, the React app
+```
+
+| URL | What |
+|---|---|
+| http://localhost | App (nginx, `FRONTEND_PORT=80`) |
+| http://localhost/api | API through nginx — what the browser uses |
+| http://localhost:5000/api | API direct, this machine only (`BACKEND_PORT=5000`) |
+| `redis:6379` | Redis, inside `app-network` only (with `--profile redis`) |
+
+Minimum `.env` to run: `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`. Add `GROQ_API_KEY` for AI follow-up questions, `TWILIO_*` (or `DEV_LOG_OTP=true` locally) for sign-in codes, and `CLOUDINARY_*` for profile pictures.
+
+Checks that passed: all authenticated GET endpoints for patients and doctors (profile, consultations, prescriptions, PDF download, notifications, follow-ups, support access) return 200 through nginx → backend → Supabase; auth endpoints validate input (400); `POST /api/ai/analyze-symptoms` and `/api/ai/final-analysis` work from the local dataset; Redis answers `PING` and is reachable from the backend.
+
+Known issues found and fixed:
+
+- **`GET /health` returned 404** — uptime checks probing the conventional path failed. The backend now answers on both `/health` and `/api/health`.
+- **`POST /api/ai/next-question` returned a generic 500 when `GROQ_API_KEY` is empty** — it now returns `503` with code `AI_UNAVAILABLE` and a message naming the missing key, so the cause is visible to clients and monitoring.
+
+Known issues still open:
+
+- AI follow-up questions need a real `GROQ_API_KEY`; without one, `/api/ai/next-question` answers 503 (symptom analysis and final analysis still work from the local dataset).
+- Without `TWILIO_*`, OTP codes are not delivered by SMS; the backend logs a warning at startup. Use `DEV_LOG_OTP=true` for local testing only.
+- Redis runs but is not used by the backend yet; rate limits are kept in memory per instance.
+- Unknown paths under `/api` answer `401` instead of `404`, because the legacy router mounted at `/api` applies auth before the not-found handler.
 
 ### Development mode (hot reload)
 
@@ -260,7 +297,7 @@ Without an SMS provider configured, OTP codes are **printed in the backend termi
 | Backend exits with `Database is not configured` | `DATABASE_URL` is missing from `backend/.env` |
 | Backend exits with `DATABASE_URL still has placeholder values` | The `[PROJECT-REF]` / `[REGION]` placeholders are still in the URL — paste the real Supabase connection strings |
 | `@prisma/client did not initialize yet` | Run `npm run db:push` (or `npm run db:generate`) in `backend/` |
-| "Symptom analysis failed" right after submitting symptoms; API says `requires GROQ_API_KEY` | Set `GROQ_API_KEY` in `backend/.env` and restart the backend |
+| "Symptom analysis failed" right after submitting symptoms; API answers 503 `AI_UNAVAILABLE` (`GROQ_API_KEY is not configured`) | Set `GROQ_API_KEY` in `.env` (Docker) or `backend/.env` and restart the backend |
 | Changes to `backend/.env` have no effect | `npm run dev` restarts on code changes but not on `.env` changes — stop it and start it again |
 | `EADDRINUSE` on port 5000 or 5173 | Another copy is still running — stop it, or change `PORT` / pass `--port` to Vite |
 | Requests blocked by CORS (API returns 403 "CORS blocked origin") | Add the exact frontend origin (scheme + host + port) to `FRONTEND_URL` and restart the backend. In development, `localhost` and `127.0.0.1` on any port are always allowed |
